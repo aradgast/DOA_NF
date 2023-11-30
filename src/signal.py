@@ -22,19 +22,19 @@ class Signal:
         :return: 2D array of shape (num_samples, num_sensors)
         """
         # Generate random noise
-        noise = np.random.randn(self.num_samples, self.num_sensors)
+        noise = (np.sqrt(2) / 2) * np.random.randn(self.num_samples, self.num_sensors) \
+                + 1j * np.random.randn(self.num_samples, self.num_sensors)
         # Generate steering vectors
         steering_vectors = np.zeros((self.num_sensors, self.num_sources), dtype=complex)
         for i, theta in enumerate(angles):
             steering_vectors[:, i] = compute_steering_vector(self.array_geometry, self.num_sensors,
                                                              self.wavelength, theta)
         # Generate random source signals
-        source_signals = np.random.randn(self.num_samples, self.num_sources)
+        source_signals = 10 ** (snr / 20) * (np.sqrt(2) / 2) * np.random.randn(self.num_samples, self.num_sources) \
+                         + 1j * np.random.randn(self.num_samples, self.num_sources)
         # Compute the signal
         signal = steering_vectors @ source_signals.T
         # Add noise
-        noise_power = np.linalg.norm(signal) ** 2 / (self.num_samples * 10 ** (snr / 10))
-        noise = np.sqrt(noise_power) * noise
         signal = signal + noise.T
 
         return signal

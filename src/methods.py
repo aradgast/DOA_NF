@@ -10,7 +10,7 @@ class MUSIC:
         self.num_sensor = num_sensors
         self.num_sources = num_sources
 
-    def compute(self, signal):
+    def compute_predictions(self, signal):
         """
         :param signal:
         :return: DOAs
@@ -20,16 +20,22 @@ class MUSIC:
         eig_vecs = eig_vecs[:, np.argsort(eig_vals)[::-1]]
         noise_eig_vecs = eig_vecs[:, self.num_sources:]
 
-        thera_range = np.linspace(0, np.pi, 18000, endpoint=False)
+        thera_range = np.linspace(-np.pi/2, np.pi/2, 18000, endpoint=False)
         music_spectrum = np.zeros(len(thera_range))
         for i, theta in enumerate(thera_range):
             steering_vec = compute_steering_vector(self.array_geometry, self.num_sensor, self.wavelength, theta)
             music_spectrum[i] = 1 / (np.linalg.norm(steering_vec.conj().T @ noise_eig_vecs) ** 2)
-
+        plt.figure()
+        plt.title("MUSIC spectrum")
+        plt.plot(np.rad2deg(thera_range), music_spectrum)
+        plt.grid()
+        plt.show()
         peaks = find_spectrum_peaks(music_spectrum)
+        peaks = np.array(peaks)
+        # predictions = np.rad2deg(peaks * np.pi / 18000 - np.pi/2)[0:self.num_sources]
         predictions = np.rad2deg(thera_range[peaks])[0:self.num_sources]
 
-        return predictions[::-1]
+        return predictions
 
 
 if __name__ == '__main__':
