@@ -12,6 +12,15 @@ def compute_covariance_matrix(signal):
     return np.cov(signal)
 
 
+def calculate_fraunhofer_distance(array_geomatry: str, num_sensors: int, wavelenght: int):
+    if array_geomatry == "ULA":
+        D = (num_sensors - 1) * wavelenght / 2
+        d_f = 2 * (D ** 2) / wavelenght
+        return d_f
+    else:
+        raise TypeError(f"{array_geomatry} not supported")
+
+
 def compute_steering_vector(array_geometry: str, num_sensors: int, wavelength: int, theta: float):
     """
     Compute the steering vector for a given array geometry and wavelength
@@ -28,10 +37,28 @@ def compute_steering_vector(array_geometry: str, num_sensors: int, wavelength: i
         raise ValueError('Invalid array geometry')
 
 
+def compute_steering_vector_2d(array_geometry: str, num_sensors: int, wavelength: int, theta: float, dist: float):
+    """
+    Compute the steering vector for a given array geometry and wavelength
+    :param dist:
+    :param array_geometry: str
+    :param num_sensors: int
+    :param wavelength:
+    :param theta: float
+    :return: 1D array of shape (num_sensors, )
+    """
+    if array_geometry == 'ULA':
+        array = np.linspace(0, num_sensors, num_sensors, endpoint=False) * wavelength / 2
+        z = dist ** 2 + array ** 2 - 2 * dist * array * np.cos(theta)
+        return np.exp(-1j * 2 * np.pi * z / wavelength) / z
+    else:
+        raise ValueError('Invalid array geometry')
+
+
 def find_spectrum_peaks(spectrum):
     """
     Find the indices of the peaks in the array
-    :param array: 1D array
+    :param spectrum:
     :return: peaks indices
     """
     # Find spectrum peaks
@@ -40,6 +67,47 @@ def find_spectrum_peaks(spectrum):
     peaks.sort(key=lambda x: spectrum[x], reverse=True)
 
     return peaks
+
+
+def find_spectrum_2d_peaks(spectrum):
+    """
+    Find the indices of the peaks in the array
+    :param spectrum:
+    :return: peaks indices
+    """
+    # Flatten the spectrum
+    spectrum_flatten = spectrum.flatten()
+    # Find spectrum peaks
+    peaks = list(sc.signal.find_peaks(spectrum_flatten)[0])
+    # Sort the peak by their amplitude
+    peaks.sort(key=lambda x: spectrum_flatten[x], reverse=True)
+    # convert the peaks to 2d indices
+    original_idx = np.unravel_index(peaks, spectrum.shape)
+
+    return list(original_idx)
+
+
+def choose_angles(num_angles: int, angle_low: float = -90, angle_high: float = 90, min_gap: int = 2,
+                  max_gap: int = 180):
+    """
+    Choose random angles
+    :param max_gap:
+    :param num_angles: int
+    :param angle_low: float
+    :param angle_high: float
+    :param min_gap: int
+    :return: list of angles
+    """
+    angles = []
+    while len(angles) < num_angles:
+        angle = np.random.randint(angle_low, angle_high)
+        if len(angles) == 0:
+            angles.append(angle)
+        else:
+            if np.min(np.abs(np.array(angles) - angle)) >= min_gap and \
+                    np.max(np.abs(np.array(angles) - angle)) <= max_gap:
+                angles.append(angle)
+    return np.deg2rad(angles)
 
 
 def plot_angles_on_unit_circle(true, predections):
