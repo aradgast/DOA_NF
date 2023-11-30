@@ -32,7 +32,6 @@ class MUSIC:
         plt.show()
         peaks = find_spectrum_peaks(music_spectrum)
         peaks = np.array(peaks)
-        # predictions = np.rad2deg(peaks * np.pi / 18000 - np.pi/2)[0:self.num_sources]
         predictions = np.rad2deg(thera_range[peaks])[0:self.num_sources]
 
         return predictions

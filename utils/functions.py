@@ -22,7 +22,8 @@ def compute_steering_vector(array_geometry: str, num_sensors: int, wavelength: i
     :return: 1D array of shape (num_sensors, )
     """
     if array_geometry == 'ULA':
-        return np.exp(-1j * 2 * np.pi * np.linspace(0, num_sensors, num_sensors, endpoint=False) * np.sin(theta) / wavelength)
+        return np.exp(-1j * np.pi * np.linspace(0, num_sensors, num_sensors, endpoint=False)
+                      * np.sin(theta) / wavelength)
     else:
         raise ValueError('Invalid array geometry')
 
