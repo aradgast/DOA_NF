@@ -49,11 +49,10 @@ class MUSIC2D:
         self.wavelength = wavelength
         self.num_sensor = num_sensors
         self.num_sources = num_sources
-        self.thera_range = np.linspace(np.pi/10, np.pi/2, 100, endpoint=False)
+        self.thera_range = np.arange(np.pi/180, np.pi - np.pi/360, np.pi/720)
         self.fraunhofer_distance, D = calculate_fraunhofer_distance(array_geometry, num_sensors, wavelength)
-        self.distance_range = np.linspace(D, self.fraunhofer_distance, 50,
-                                          endpoint=False)
-        print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
+        self.distance_range = np.arange(D, self.fraunhofer_distance, 0.01)
+        # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
     def compute_predictions(self, signal):
         """
@@ -77,7 +76,7 @@ class MUSIC2D:
         peaks = np.array(peaks)
         predict_theta = self.thera_range[peaks[0]][0:self.num_sources]
         predict_dist = self.distance_range[peaks[1]][0:self.num_sources]
-        self.plot_spectrum(music_spectrum)
+        # self.plot_spectrum(music_spectrum)
         return predict_theta, predict_dist
 
     def plot_spectrum(self, spectrum):
