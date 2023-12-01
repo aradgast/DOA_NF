@@ -25,9 +25,18 @@ if __name__ == '__main__':
     #                    source_range=S,
     #                    sample_range=T)
     # results = sim.run_snr_sources()
-    method = MUSIC2D(array_geometry='ULA', num_sensors=8, wavelength=1, num_sources=1)
-    signal = Signal(wavelength=1, array_geometry='ULA', num_sources=1, num_sensors=8)
-    sample = signal.generate(snr=30, angles=np.deg2rad([60]), distances=[15], num_samples=100)
+    method = MUSIC2D(array_geometry='ULA',
+                     num_sensors=8,
+                     wavelength=1,
+                     num_sources=1)
+    signal = Signal(array_geometry='ULA',
+                    num_sensors=8,
+                    wavelength=1,
+                    num_sources=1)
+    sample = signal.generate(snr=30,
+                             angles=np.deg2rad([35]),
+                             distances=[10],
+                             num_samples=100)
     pred = method.compute_predictions(sample)
     print(f"Angles: {np.rad2deg(pred[0])}")
     print(f"Radius: {pred[1]}")

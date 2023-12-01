@@ -16,7 +16,7 @@ def calculate_fraunhofer_distance(array_geomatry: str, num_sensors: int, wavelen
     if array_geomatry == "ULA":
         D = (num_sensors - 1) * wavelenght / 2
         d_f = 2 * (D ** 2) / wavelenght
-        return d_f
+        return d_f, D
     else:
         raise TypeError(f"{array_geomatry} not supported")
 
@@ -50,6 +50,7 @@ def compute_steering_vector_2d(array_geometry: str, num_sensors: int, wavelength
     if array_geometry == 'ULA':
         array = np.linspace(0, num_sensors, num_sensors, endpoint=False) * wavelength / 2
         z = dist ** 2 + array ** 2 - 2 * dist * array * np.cos(theta)
+        # z = dist ** 2 + (array / np.cos(theta)) ** 2 - 2 * dist * array / np.cos(theta)
         return np.exp(-1j * 2 * np.pi * z / wavelength) / z
     else:
         raise ValueError('Invalid array geometry')
@@ -108,6 +109,31 @@ def choose_angles(num_angles: int, angle_low: float = -90, angle_high: float = 9
                     np.max(np.abs(np.array(angles) - angle)) <= max_gap:
                 angles.append(angle)
     return np.deg2rad(angles)
+
+
+def choose_distances(num_distances: int, array_geomatry: str, num_sensors: int, wavelength: int, min_gap: int = 1,
+                     max_gap: int = 100):
+    """
+    Choose random distances
+    :param wavelength:
+    :param num_sensors:
+    :param array_geomatry:
+    :param num_distances:
+    :param min_gap:
+    :param max_gap:
+    :return: distances list
+    """
+    distance_high, distance_low = calculate_fraunhofer_distance(array_geomatry, num_sensors, wavelength)
+    distances = []
+    while len(distances) < num_distances:
+        distance = np.random.randint(distance_low, distance_high)
+        if len(distances) == 0:
+            distances.append(distance)
+        else:
+            if np.min(np.abs(np.array(distances) - distance)) >= min_gap and \
+                    np.max(np.abs(np.array(distances) - distance)) <= max_gap:
+                distances.append(distance)
+    return distances
 
 
 def plot_angles_on_unit_circle(true, predections):

@@ -49,10 +49,11 @@ class MUSIC2D:
         self.wavelength = wavelength
         self.num_sensor = num_sensors
         self.num_sources = num_sources
-        self.thera_range = np.linspace(0, np.pi, 360, endpoint=False)
-        self.fraunhofer_distance = calculate_fraunhofer_distance(array_geometry, num_sensors, wavelength)
-        self.distance_range = np.linspace(0.1 * self.fraunhofer_distance, 0.9 * self.fraunhofer_distance, 100,
+        self.thera_range = np.linspace(np.pi/10, np.pi/2, 100, endpoint=False)
+        self.fraunhofer_distance, D = calculate_fraunhofer_distance(array_geometry, num_sensors, wavelength)
+        self.distance_range = np.linspace(D, self.fraunhofer_distance, 50,
                                           endpoint=False)
+        print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
     def compute_predictions(self, signal):
         """
@@ -69,7 +70,8 @@ class MUSIC2D:
             for idx_dist, dist in enumerate(self.distance_range):
                 steering_vec = compute_steering_vector_2d(self.array_geometry, self.num_sensor, self.wavelength,
                                                           theta, dist)
-                music_spectrum[idx_angle, idx_dist] = 1 / (np.linalg.norm(steering_vec.conj().T @ noise_eig_vecs) ** 2)
+                inverse_spectrum = np.real(steering_vec.conj().T @ noise_eig_vecs @ noise_eig_vecs.conj().T @ steering_vec)
+                music_spectrum[idx_angle, idx_dist] = 1 / inverse_spectrum
 
         peaks = find_spectrum_2d_peaks(music_spectrum)
         peaks = np.array(peaks)
