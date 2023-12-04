@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sc
 from utils.functions import *
@@ -22,8 +23,8 @@ class MTSimulation:
         # Initialize the results array
         results = np.zeros((len(self.snr_range), len(self.sample_range)))
         # Run the simulation
-        self.source_range = self.source_range[0]
-        doa = choose_angles(self.source_range)
+        S = self.source_range[0]
+        doa = choose_angles(S)
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
                 for i in range(self.iteration_num):
@@ -38,7 +39,7 @@ class MTSimulation:
                 print(f'SNR = {snr}, T = {t}:  MSE = {results[snr_idx, t_idx]}')
         # Plot the results
         plt.figure()
-        plt.title('MSE vs SNR and number of samples')
+        plt.title(f'MSE vs SNR and number of samples, S = {S}, DOA = {np.rad2deg(doa)}')
         plt.xlabel('SNR (dB)')
         plt.ylabel('MSE (dB)')
         for idx, T in enumerate(self.sample_range):
@@ -46,7 +47,8 @@ class MTSimulation:
 
         plt.legend()
         plt.grid()
-        plt.show()
+        # plt.show()
+        plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_snr_samples.jpeg")
         return results
 
     def run_snr_sources(self):
@@ -57,13 +59,14 @@ class MTSimulation:
         # Initialize the results array
         results = np.zeros((len(self.snr_range), len(self.source_range)))
         # Run the simulation
-        self.sample_range = self.sample_range[0]
+        T = self.sample_range[0]
         for s_idx, s in enumerate(self.source_range):
-            doa = choose_angles(s, max_gap=15)
+            doa = choose_angles(s, max_gap=10)
+            print(f"DOA = {np.rad2deg(doa)}")
             for snr_idx, snr in enumerate(self.snr_range):
                 for i in range(self.iteration_num):
                     # Generate the signal
-                    samples = self.signal.generate(snr=snr, angles=doa, num_samples=self.sample_range, num_sources=s)
+                    samples = self.signal.generate(snr=snr, angles=doa, num_samples=T, num_sources=s)
                     # Compute the predictions
                     predictions = self.method.compute_predictions(samples, num_sources=s)
                     # Compute the loss
@@ -74,7 +77,7 @@ class MTSimulation:
                 print(f'SNR = {snr}, S = {s}:  MSE = {results[snr_idx, s_idx]}')
         # Plot the results
         plt.figure()
-        plt.title('MSE vs SNR and number of sources')
+        plt.title(f'MSE vs SNR and number of sources, T = {T}')
         plt.xlabel('SNR (dB)')
         plt.ylabel('MSE (dB)')
         for idx, S in enumerate(self.source_range):
@@ -82,5 +85,43 @@ class MTSimulation:
 
         plt.legend()
         plt.grid()
-        plt.show()
+        # plt.show()
+        plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_snr_sources.jpeg")
+
+        return results
+
+    def run_NumberofSnapshot(self):
+        """
+
+        :return:
+        """
+        # Initialize the results array
+        results = np.zeros(len(self.sample_range))
+        # Run the simulation
+        SNR = self.snr_range[0]
+        self.source_range = self.source_range[0]
+        doa = choose_angles(self.source_range)
+        print(f"")
+        for s_idx, num_samples in enumerate(self.sample_range):
+            for i in range(self.iteration_num):
+                # Generate the signal
+                samples = self.signal.generate(snr=SNR, angles=doa, num_samples=num_samples,
+                                               num_sources=self.source_range)
+                # Compute the predictions
+                predictions = self.method.compute_predictions(samples, num_sources=self.source_range)
+                # Compute the loss
+
+                loss_i = self.loss(predictions, doa)
+                # Store the results
+                results[s_idx] += (loss_i / float(self.iteration_num))
+            print(f'Number of Snapshots = {num_samples}:  MSE = {results[s_idx]}')
+        # Plot the results
+        plt.figure()
+        plt.title(f'MSE vs NumberofSnapshot, SNR = {SNR}, S = {self.source_range}, DOA = {np.rad2deg(doa)}')
+        plt.xlabel('Number of Snapshot')
+        plt.ylabel('MSE (dB)')
+        plt.semilogx(self.sample_range, results)
+        plt.grid()
+        # plt.show()
+        plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_NumberofSnapshot.jpeg")
         return results

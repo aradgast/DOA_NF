@@ -50,8 +50,8 @@ class Signal:
 
         return signal
 
-    def generate(self, snr: float, angles: list, distances: list,
-                 num_samples: int = None, num_sources: int = None, num_sensors: int = None):
+    def generate_2d(self, snr: float, angles: list, distances: list,
+                    num_samples: int = None, num_sources: int = None, num_sensors: int = None):
         """
         Generate a signal with the given parameters
         :param distances:

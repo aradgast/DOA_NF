@@ -32,6 +32,12 @@ class MUSIC:
         peaks = find_spectrum_peaks(music_spectrum)
         peaks = np.array(peaks)
         predictions = self.thera_range[peaks][0:num_sources]
+        if len(predictions) != num_sources:
+            tmp = np.mean(predictions)
+            predictions = list(predictions)
+            for i in range(num_sources-len(predictions)):
+                predictions.append(tmp)
+            predictions = np.array(predictions)
         # self.plot_spectrum(music_spectrum)
         return predictions
 
