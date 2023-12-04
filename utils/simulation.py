@@ -6,7 +6,7 @@ from utils.functions import *
 
 class MTSimulation:
     def __init__(self, iteration_num: int, method, signal, loss, snr_range: list,
-                 source_range: list, sample_range: list):
+                 source_range: list, sample_range: list, is_2d: bool = False):
         self.iteration_num = iteration_num
         self.method = method
         self.signal = signal
@@ -14,8 +14,26 @@ class MTSimulation:
         self.source_range = source_range
         self.sample_range = sample_range
         self.loss = loss
+        self.is_2d = is_2d
 
     def run_snr_samples(self):
+        if self.is_2d:
+            return self.__run_snr_samples_2D()
+        else:
+            return self.__run_snr_samples_1D()
+
+    def run_snr_sources(self):
+        if self.is_2d:
+            return self.__run_snr_sources_2D()
+        else:
+            return self.__run_snr_sources_1D()
+
+    def run_NumberofSnapshot(self):
+        if self.is_2d:
+            return self.__run_NumberofSnapshot_2D()
+        else:
+            return self.__run_NumberofSnapshot_1D()
+    def __run_snr_samples_1D(self):
         """
         Run the simulation
         :return: None
@@ -29,7 +47,11 @@ class MTSimulation:
             for t_idx, t in enumerate(self.sample_range):
                 for i in range(self.iteration_num):
                     # Generate the signal
-                    samples = self.signal.generate(snr=snr, angles=doa, num_samples=t)
+                    if self.is_2d:
+                        samples = self.signal.generate_2d(snr=snr, angles=doa, distances=choose_distances(S),
+                                                          num_samples=t, num_sources=S)
+                    else:
+                        samples = self.signal.generate(snr=snr, angles=doa, num_samples=t)
                     # Compute the predictions
                     predictions = self.method.compute_predictions(samples)
                     # Compute the loss
@@ -51,7 +73,12 @@ class MTSimulation:
         plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_snr_samples.jpeg")
         return results
 
-    def run_snr_sources(self):
+    def __run_snr_samples_2D(self):
+        pass
+
+
+
+    def __run_snr_sources_1D(self):
         """
                 Run the simulation
                 :return: None
@@ -90,7 +117,10 @@ class MTSimulation:
 
         return results
 
-    def run_NumberofSnapshot(self):
+    def __run_snr_sources_2D(self):
+        pass
+
+    def __run_NumberofSnapshot_1D(self):
         """
 
         :return:
@@ -125,3 +155,6 @@ class MTSimulation:
         # plt.show()
         plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_NumberofSnapshot.jpeg")
         return results
+
+    def __run_NumberofSnapshot_2D(self):
+        pass

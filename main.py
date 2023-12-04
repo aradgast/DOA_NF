@@ -58,12 +58,25 @@ if __name__ == '__main__':
     # for snr in [10, 20, 30, 40, 50]:
     #     for T in [10, 50, 100, 200]:
     # print(f"###### SNR = {snr}, T = {T} ########")
-    snr = 25
-    T = 100
-    sample = signal.generate_2d(snr=snr,
+    snr = [0, 5, 10, 15, 25, 30]
+    T = [10, 50, 100, 200, 500, 1000]
+    sample = signal.generate_2d(snr=snr[0],
                                 angles=angles,
                                 distances=distances,
-                                num_samples=T)
+                                num_samples=T[0])
     pred_angles, pred_distances = method.compute_predictions(sample)
     print(f"Angles: {np.sort(np.rad2deg(pred_angles))}")
     print(f"Radius: {np.sort(pred_distances)}")
+    ###########################################################
+    S = [2, 3, 4]
+    sim = MTSimulation(iteration_num=100,
+                       method=method,
+                       signal=signal,
+                       loss=compute_mse_loss,
+                       snr_range=snr,
+                       source_range=S,
+                       sample_range=T,
+                       is_2d=True)
+    results = sim.run_snr_sources()
+    results = sim.run_snr_samples()
+    results = sim.run_NumberofSnapshot()
