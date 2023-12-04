@@ -120,7 +120,7 @@ class MTSimulation:
         plt.title(f'MSE vs NumberofSnapshot, SNR = {SNR}, S = {self.source_range}, DOA = {np.rad2deg(doa)}')
         plt.xlabel('Number of Snapshot')
         plt.ylabel('MSE (dB)')
-        plt.semilogx(self.sample_range, results)
+        plt.semilogx(self.sample_range, 10 * np.log10(results))
         plt.grid()
         # plt.show()
         plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_NumberofSnapshot.jpeg")

@@ -55,7 +55,7 @@ class MUSIC2D:
         self.wavelength = wavelength
         self.num_sensor = num_sensors
         self.num_sources = num_sources
-        self.thera_range = np.arange(np.pi/180, np.pi - np.pi/360, np.pi/720)
+        self.thera_range = np.arange(np.pi/1800, np.pi - np.pi/1800, np.pi/1800)
         self.fraunhofer_distance, D = calculate_fraunhofer_distance(array_geometry, num_sensors, wavelength)
         self.distance_range = np.arange(D, self.fraunhofer_distance, 0.01)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
@@ -82,16 +82,31 @@ class MUSIC2D:
         peaks = np.array(peaks)
         predict_theta = self.thera_range[peaks[0]][0:self.num_sources]
         predict_dist = self.distance_range[peaks[1]][0:self.num_sources]
-        # self.plot_spectrum(music_spectrum)
+        # self.plot_heatmap(music_spectrum)
+        self.plot_3d_spectrum(music_spectrum)
         return predict_theta, predict_dist
 
-    def plot_spectrum(self, spectrum):
+    def plot_heatmap(self, spectrum):
+        data = np.log1p(spectrum)
+        plt.figure()
+        plt.title("MUSIC spectrum")
+        plt.imshow(data, cmap='viridis', aspect='auto', origin='lower',
+                   extent=[min(self.distance_range), max(self.distance_range),
+                           min(np.rad2deg(self.thera_range)), max(np.rad2deg(self.thera_range))])
+        plt.colorbar()
+        plt.xlabel('Distance')
+        plt.ylabel('Theta')
+        plt.grid()
+        plt.show()
+
+    def plot_3d_spectrum(self, spectrum):
         # Creating figure
         x, y = np.meshgrid(self.distance_range, np.rad2deg(self.thera_range))
         # Plotting the 3D surface
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot_surface(x, y, spectrum, cmap='viridis')
+        surface = ax.plot_surface(x, y, np.log1p(spectrum), cmap='viridis', rstride=5, cstride=5, alpha=0.8)
+        cbar = fig.colorbar(surface, ax=ax, label='Intensity')
         ax.set_title('MUSIC spectrum')
         ax.set_xlim(self.distance_range[0], self.distance_range[-1])
         ax.set_ylim(np.rad2deg(self.thera_range[0]), np.rad2deg(self.thera_range[-1]))
