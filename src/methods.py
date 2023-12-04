@@ -55,7 +55,7 @@ class MUSIC2D:
         self.wavelength = wavelength
         self.num_sensor = num_sensors
         self.num_sources = num_sources
-        self.thera_range = np.arange(np.pi/1800, np.pi - np.pi/1800, np.pi/1800)
+        self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi/1800)
         self.fraunhofer_distance, D = calculate_fraunhofer_distance(array_geometry, num_sensors, wavelength)
         self.distance_range = np.arange(D, self.fraunhofer_distance, 0.01)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
@@ -105,8 +105,7 @@ class MUSIC2D:
         # Plotting the 3D surface
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        surface = ax.plot_surface(x, y, np.log1p(spectrum), cmap='viridis', rstride=5, cstride=5, alpha=0.8)
-        cbar = fig.colorbar(surface, ax=ax, label='Intensity')
+        ax.plot_surface(x, y, np.log1p(spectrum), cmap='viridis')
         ax.set_title('MUSIC spectrum')
         ax.set_xlim(self.distance_range[0], self.distance_range[-1])
         ax.set_ylim(np.rad2deg(self.thera_range[0]), np.rad2deg(self.thera_range[-1]))

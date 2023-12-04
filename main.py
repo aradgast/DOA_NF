@@ -42,7 +42,7 @@ if __name__ == '__main__':
     M = 7
     wavelength = 1
     array_geometry = 'ULA'
-    angles = choose_angles(S, min_gap=2, max_gap=30)
+    angles = choose_angles(1, min_gap=2, max_gap=180)
     distances = choose_distances(S, array_geometry, M, wavelength, min_gap=1, max_gap=100)
     print(f"True Angles: {np.sort(np.rad2deg(angles))}")
     print(f"True Distances: {np.sort(distances)},"
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # for snr in [10, 20, 30, 40, 50]:
     #     for T in [10, 50, 100, 200]:
     # print(f"###### SNR = {snr}, T = {T} ########")
-    snr = 20
+    snr = 25
     T = 100
     sample = signal.generate_2d(snr=snr,
                                 angles=angles,
