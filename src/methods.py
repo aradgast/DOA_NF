@@ -1,13 +1,12 @@
 import numpy as np
 import scipy as sc
 from utils.functions import *
+from src.modules import Module
 
 
 class MUSIC:
-    def __init__(self, array_geometry: str, num_sensors: int, wavelength: int, num_sources=None):
-        self.array_geometry = array_geometry
-        self.wavelength = wavelength
-        self.num_sensor = num_sensors
+    def __init__(self, module: Module, num_sources=None):
+        self.module = module
         self.num_sources = num_sources
         self.thera_range = np.linspace(-np.pi / 2, np.pi / 2, 18000, endpoint=False)
 
@@ -26,10 +25,10 @@ class MUSIC:
 
         music_spectrum = np.zeros(len(self.thera_range))
         for i, theta in enumerate(self.thera_range):
-            steering_vec = compute_steering_vector(self.array_geometry, self.num_sensor, self.wavelength, theta)
+            steering_vec = self.module.compute_steering_vector(theta)
             music_spectrum[i] = 1 / (np.linalg.norm(steering_vec.conj().T @ noise_eig_vecs) ** 2)
 
-        peaks = find_spectrum_peaks(music_spectrum)
+        peaks = self.find_spectrum_peaks(music_spectrum)
         peaks = np.array(peaks)
         predictions = self.thera_range[peaks][0:num_sources]
         if len(predictions) != num_sources:
@@ -48,23 +47,37 @@ class MUSIC:
         plt.grid()
         plt.show()
 
+    def find_spectrum_peaks(self, spectrum):
+        """
+        Find the indices of the peaks in the array
+        :param spectrum:
+        :return: peaks indices
+        """
+        # Find spectrum peaks
+        peaks = list(sc.signal.find_peaks(spectrum)[0])
+        # Sort the peak by their amplitude
+        peaks.sort(key=lambda x: spectrum[x], reverse=True)
+
+        return peaks
+
 
 class MUSIC2D:
-    def __init__(self, array_geometry: str, num_sensors: int, wavelength: int, num_sources: int = None):
-        self.array_geometry = array_geometry
-        self.wavelength = wavelength
-        self.num_sensor = num_sensors
+    def __init__(self, module: Module, num_sources: int = None):
+        self.module = module
         self.num_sources = num_sources
         self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi/1800)
-        self.fraunhofer_distance, D = calculate_fraunhofer_distance(array_geometry, num_sensors, wavelength)
+        self.fraunhofer_distance, D = self.module.calculate_fraunhofer_distance()
         self.distance_range = np.arange(D, self.fraunhofer_distance, 0.01)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
-    def compute_predictions(self, signal):
+    def compute_predictions(self, signal, num_sources: int = None):
         """
+        :param num_sources:
         :param signal:
         :return: DOAs
         """
+        if num_sources is None:
+            num_sources = self.num_sources
         cov_mat = compute_covariance_matrix(signal)
         eig_vals, eig_vecs = sc.linalg.eig(cov_mat)
         eig_vecs = eig_vecs[:, np.argsort(eig_vals)[::-1]]
@@ -73,12 +86,11 @@ class MUSIC2D:
         music_spectrum = np.zeros((len(self.thera_range), len(self.distance_range)))
         for idx_angle, theta in enumerate(self.thera_range):
             for idx_dist, dist in enumerate(self.distance_range):
-                steering_vec = compute_steering_vector_2d(self.array_geometry, self.num_sensor, self.wavelength,
-                                                          theta, dist)
+                steering_vec = self.module.compute_steering_vector(theta, dist)
                 inverse_spectrum = np.real(steering_vec.conj().T @ noise_eig_vecs @ noise_eig_vecs.conj().T @ steering_vec)
                 music_spectrum[idx_angle, idx_dist] = 1 / inverse_spectrum
 
-        peaks = find_spectrum_2d_peaks(music_spectrum)
+        peaks = self.find_spectrum_peaks(music_spectrum)
         peaks = np.array(peaks)
         predict_theta = self.thera_range[peaks[0]][0:self.num_sources]
         predict_dist = self.distance_range[peaks[1]][0:self.num_sources]
@@ -116,6 +128,23 @@ class MUSIC2D:
 
         # Display the plot
         plt.show()
+
+    def find_spectrum_peaks(self, spectrum):
+        """
+        Find the indices of the peaks in the array
+        :param spectrum:
+        :return: peaks indices
+        """
+        # Flatten the spectrum
+        spectrum_flatten = spectrum.flatten()
+        # Find spectrum peaks
+        peaks = list(sc.signal.find_peaks(spectrum_flatten)[0])
+        # Sort the peak by their amplitude
+        peaks.sort(key=lambda x: spectrum_flatten[x], reverse=True)
+        # convert the peaks to 2d indices
+        original_idx = np.unravel_index(peaks, spectrum.shape)
+
+        return list(original_idx)
 
 
 if __name__ == '__main__':

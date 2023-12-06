@@ -3,17 +3,15 @@ import numpy as np
 # import matplotlib.pyplot as plt
 
 from utils.functions import *
+from src.modules import Module
 
 
 class Signal:
 
-    def __init__(self, wavelength: int, array_geometry: str,
-                 num_samples: int = None, num_sources: int = None, num_sensors: int = None):
+    def __init__(self, module: Module, num_samples: int = None, num_sources: int = None):
         self.num_samples = num_samples
         self.num_sources = num_sources
-        self.num_sensors = num_sensors
-        self.wavelength = wavelength
-        self.array_geometry = array_geometry
+        self.module = module
 
     def generate(self, snr: float, angles: list,
                  num_samples: int = None, num_sources: int = None, num_sensors: int = None):
@@ -31,15 +29,14 @@ class Signal:
         if num_sources is None:
             num_sources = self.num_sources
         if num_sensors is None:
-            num_sensors = self.num_sensors
+            num_sensors = self.module.num_sensors
         # Generate random noise
         noise = (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sensors) \
                 + 1j * np.random.randn(num_samples, num_sensors)
         # Generate steering vectors
         steering_vectors = np.zeros((num_sensors, num_sources), dtype=complex)
         for i, theta in enumerate(angles):
-            steering_vectors[:, i] = compute_steering_vector(self.array_geometry, num_sensors,
-                                                             self.wavelength, theta)
+            steering_vectors[:, i] = self.module.compute_steering_vector(theta)
         # Generate random source signals
         source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
                          + 1j * np.random.randn(num_samples, num_sources)
@@ -67,15 +64,14 @@ class Signal:
         if num_sources is None:
             num_sources = self.num_sources
         if num_sensors is None:
-            num_sensors = self.num_sensors
+            num_sensors = self.module.num_sensors
         # Generate random noise
         noise = (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sensors) \
                 + 1j * np.random.randn(num_samples, num_sensors)
         # Generate steering vectors
         steering_vectors = np.zeros((num_sensors, num_sources), dtype=complex)
         for i, (theta, dist) in enumerate(zip(angles, distances)):
-            steering_vectors[:, i] = compute_steering_vector_2d(self.array_geometry, num_sensors,
-                                                                self.wavelength, theta, dist)
+            steering_vectors[:, i] = self.module.compute_steering_vector(theta, dist)
         # Generate random source signals
         source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
                          + 1j * np.random.randn(num_samples, num_sources)
