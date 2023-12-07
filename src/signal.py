@@ -68,15 +68,19 @@ class Signal:
         # Generate random noise
         noise = (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sensors) \
                 + 1j * np.random.randn(num_samples, num_sensors)
+        # # Generate steering vectors
+        # steering_vectors = np.zeros((num_sensors, num_sources), dtype=complex)
+        # for i, (theta, dist) in enumerate(zip(angles, distances)):
+        #     steering_vectors[:, i] = self.module.compute_steering_vector(theta, dist)
         # Generate steering vectors
-        steering_vectors = np.zeros((num_sensors, num_sources), dtype=complex)
-        for i, (theta, dist) in enumerate(zip(angles, distances)):
-            steering_vectors[:, i] = self.module.compute_steering_vector(theta, dist)
+        steering_vectors = self.module.compute_steering_vector(angles, distances)
+
         # Generate random source signals
         source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
                          + 1j * np.random.randn(num_samples, num_sources)
         # Compute the signal
-        signal = steering_vectors @ source_signals.T
+        # signal = steering_vectors @ source_signals.T
+        signal = np.einsum('ijj,jk->ik', steering_vectors, source_signals.T)
         # Add noise
         signal = signal + noise.T
 

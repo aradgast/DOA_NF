@@ -103,20 +103,31 @@ class MTSimulation:
                 print(f'SNR = {snr}, T = {t}:  '
                       f'MSE(angles, dist) = ({results_angles[snr_idx, t_idx]}, {results_distances[snr_idx, t_idx]})')
         # Plot the results
-        # TODO add subplots for distances
-        plt.figure()
-        plt.title(f'MSE vs SNR and number of samples, S = {S}, DOA = {np.rad2deg(doa)}')
+        plt.subplot(1, 2, 1)
+        plt.title(f'DOA = {np.rad2deg(doa)}')
         plt.xlabel('SNR (dB)')
-        plt.ylabel('MSE (dB)')
+        plt.ylabel('MSE(angle) (dB)')
         for idx, T in enumerate(self.sample_range):
             plt.plot(self.snr_range, 10 * np.log10(results_angles[:, idx]), label=f'T = {T}')
-
         plt.legend()
         plt.grid()
+
+        plt.subplot(1, 2, 2)
+        plt.title(f'Distances = {dist}')
+        plt.xlabel('SNR (dB)')
+        plt.ylabel('MSE(distance) (dB)')
+        for idx, T in enumerate(self.sample_range):
+            plt.plot(self.snr_range, 10 * np.log10(results_distances[:, idx]), label=f'T = {T}')
+        plt.legend()
+        plt.grid()
+
+        plt.suptitle(f"MSE vs SNR and number of samples, S = {S}", fontsize=16)
+        plt.tight_layout()
+
         if show_plot:
             plt.show()
         if save_plot:
-            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_snr_samples.jpeg")
+            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_snr_samples.jpeg")
         return results_angles, results_distances
 
     def __run_snr_sources_1D(self, show_plot: bool = True, save_plot: bool = False):
@@ -192,20 +203,30 @@ class MTSimulation:
                 print(f'SNR = {snr}, S = {s}:  MSE(angles, distances) = '
                       f'({results_angles[snr_idx, s_idx]}, {results_dist[snr_idx, s_idx]})')
         # Plot the results
-        # TODO add subplots for distances
-        plt.figure()
-        plt.title(f'MSE vs SNR and number of sources, T = {T}')
+        plt.subplot(1, 2, 1)
+        plt.title(f'DOA')
         plt.xlabel('SNR (dB)')
-        plt.ylabel('MSE (dB)')
+        plt.ylabel('MSE(Angle) (dB)')
         for idx, S in enumerate(self.source_range):
             plt.plot(self.snr_range, 10 * np.log10(results_angles[:, idx]), label=f'S = {S}')
-
         plt.legend()
         plt.grid()
+
+        plt.subplot(1, 2, 2)
+        plt.title(f'Distances')
+        plt.xlabel('SNR (dB)')
+        plt.ylabel('MSE(distance) (dB)')
+        for idx, S in enumerate(self.source_range):
+            plt.plot(self.snr_range, 10 * np.log10(results_dist[:, idx]), label=f'S = {S}')
+        plt.legend()
+        plt.grid()
+
+        plt.suptitle(f'MSE vs SNR and number of sources, T = {T}', fontsize=16)
+        plt.tight_layout()
         if show_plot:
             plt.show()
         if save_plot:
-            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_snr_sources.jpeg")
+            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_snr_sources.jpeg")
 
         return results_angles
 
@@ -281,16 +302,25 @@ class MTSimulation:
             print(f'Number of Snapshots = {snapshots}:  '
                   f'MSE(angles, distances) = ({results_angles[t_idx]}, {results_dist[t_idx]})')
         # Plot the results
-        #TODO add subplots for distances
-        plt.figure()
-        plt.title(f'MSE vs NumberofSnapshot, SNR = {SNR}, S = {S}, DOA = {np.rad2deg(doa)}')
+        plt.subplot(1, 2, 1)
+        plt.title(f'DOA = {np.rad2deg(doa)}')
         plt.xlabel('Number of Snapshot')
-        plt.ylabel('MSE (dB)')
+        plt.ylabel('MSE(angle) (dB)')
         plt.semilogx(self.sample_range, 10 * np.log10(results_angles))
         plt.grid()
+
+        plt.subplot(1, 2, 2)
+        plt.title(f'Distance = {dist}')
+        plt.xlabel('Number of Snapshot')
+        plt.ylabel('MSE(dist) (dB)')
+        plt.semilogx(self.sample_range, 10 * np.log10(results_dist))
+        plt.grid()
+
+        plt.title(f'MSE vs NumberofSnapshot, SNR = {SNR}, S = {S}')
+        plt.tight_layout()
         if show_plot:
             plt.show()
         if save_plot:
-            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_1D\run_NumberofSnapshot.jpeg")
+            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_NumberofSnapshot.jpeg")
 
         return results_angles, results_dist

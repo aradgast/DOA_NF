@@ -67,7 +67,7 @@ class MUSIC2D:
         self.num_sources = num_sources
         self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi/1800)
         self.fraunhofer_distance, D = self.module.calculate_fraunhofer_distance()
-        self.distance_range = np.arange(D, self.fraunhofer_distance, 0.01)
+        self.distance_range = np.linspace(D, self.fraunhofer_distance, 1800)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
     def compute_predictions(self, signal, num_sources: int = None):
@@ -83,12 +83,20 @@ class MUSIC2D:
         eig_vecs = eig_vecs[:, np.argsort(eig_vals)[::-1]]
         noise_eig_vecs = eig_vecs[:, self.num_sources:]
 
-        music_spectrum = np.zeros((len(self.thera_range), len(self.distance_range)))
-        for idx_angle, theta in enumerate(self.thera_range):
-            for idx_dist, dist in enumerate(self.distance_range):
-                steering_vec = self.module.compute_steering_vector(theta, dist)
-                inverse_spectrum = np.real(steering_vec.conj().T @ noise_eig_vecs @ noise_eig_vecs.conj().T @ steering_vec)
-                music_spectrum[idx_angle, idx_dist] = 1 / inverse_spectrum
+        # music_spectrum = np.zeros((len(self.thera_range), len(self.distance_range)))
+        # for idx_angle, theta in enumerate(self.thera_range):
+        #     for idx_dist, dist in enumerate(self.distance_range):
+        #         steering_vec = self.module.compute_steering_vector(theta, dist)
+        #         steering_vec = np.squeeze(steering_vec)
+        #         inverse_spectrum = np.real(steering_vec.conj().T @ noise_eig_vecs @ noise_eig_vecs.conj().T @ steering_vec)
+        #         music_spectrum[idx_angle, idx_dist] = 1 / inverse_spectrum
+
+        steering_vec = self.module.compute_steering_vector(self.thera_range, self.distance_range)
+        var_1 = np.einsum("ijk,kl->ijl", np.transpose(steering_vec.conj(), (2, 1, 0)), noise_eig_vecs)
+        var_2 = np.transpose(var_1.conj(), (2, 1, 0))
+        inverse_spectrum = np.real(np.einsum("ijk,kji->ji",var_1, var_2))
+        music_spectrum = 1 / inverse_spectrum
+
 
         peaks = self.find_spectrum_peaks(music_spectrum)
         peaks = np.array(peaks)

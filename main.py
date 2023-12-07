@@ -38,36 +38,34 @@ if __name__ == '__main__':
     #################################################
 
     ############### MUSIC 2D ########################
-    S = 2
-    M = 7
+    snr = [5, 15, 30]
+    T = [10, 50, 100]
+    S = [3, 3]
+    M = 9
     wavelength = 1
     array_geometry = 'ULA'
     module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength, is_2d=True)
-    angles = module.choose_angles(S)
-    # distances = module.choose_distances(S)
-    distances = [18, 18]
-    print(f"True Angles: {np.sort(np.rad2deg(angles))}")
-    print(f"True Distances: {np.sort(distances)},"
-          f" Fraunhofer distance: {module.calculate_fraunhofer_distance()[0]}")
-    method = MUSIC2D(module=module,
-                     num_sources=S)
-    signal = Signal(module=module,
-                    num_sources=S)
-    snr = [0, 5, 10, 15, 25, 30]
-    T = [10, 50, 100, 200, 500, 1000]
-    S = [2, 3, 4]
 
+    method = MUSIC2D(module=module,
+                     num_sources=S[0])
+    signal = Signal(module=module,
+                    num_sources=S[0])
     ################## SINGLE RUN ##################
+    angles = module.choose_angles(S[0])
+    distances = module.choose_distances(S[0])
+    print(f"True Angles: {np.rad2deg(angles)}")
+    print(f"True Distances: {distances},"
+          f" Fraunhofer distance: {module.calculate_fraunhofer_distance()[0]}")
     sample = signal.generate_2d(snr=snr[-1],
                                 angles=angles,
                                 distances=distances,
-                                num_samples=T[0])
+                                num_samples=T[-1])
     pred_angles, pred_distances = method.compute_predictions(sample)
-    print(f"Angles: {np.sort(np.rad2deg(pred_angles))}")
-    print(f"Radius: {np.sort(pred_distances)}")
+    print(f"Angles: {np.rad2deg(pred_angles)}")
+    print(f"Radius: {pred_distances}")
     ###########################################################
     ################## MONTE CARLO ############################
-    # sim = MTSimulation(iteration_num=1,
+    # sim = MTSimulation(iteration_num=10,
     #                    module=module,
     #                    method=method,
     #                    signal=signal,
@@ -76,7 +74,7 @@ if __name__ == '__main__':
     #                    source_range=S,
     #                    sample_range=T,
     #                    is_2d=True)
-    # results = sim.run_snr_sources()
-    # results = sim.run_snr_samples()
-    # results = sim.run_NumberofSnapshot()
+    # results = sim.run_snr_sources(show_plot=False, save_plot=True)
+    # results = sim.run_snr_samples(show_plot=False, save_plot=True)
+    # results = sim.run_NumberofSnapshot(show_plot=False, save_plot=True)
     ###########################################################
