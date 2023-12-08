@@ -74,13 +74,15 @@ class Signal:
         #     steering_vectors[:, i] = self.module.compute_steering_vector(theta, dist)
         # Generate steering vectors
         steering_vectors = self.module.compute_steering_vector(angles, distances)
-
+        # the function return all the possablities including the pairs not included, need to take the element on the diagonal,
+        # so steering_vectors = steering_vectors[:, i, i] for i in S, whereas len(angles) == len(distances)
+        steering_vectors = steering_vectors[:, np.arange(steering_vectors.shape[1]), np.arange(steering_vectors.shape[1])]
         # Generate random source signals
         source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
                          + 1j * np.random.randn(num_samples, num_sources)
         # Compute the signal
         # signal = steering_vectors @ source_signals.T
-        signal = np.einsum('ijj,jk->ik', steering_vectors, source_signals.T)
+        signal = steering_vectors @ source_signals.T
         # Add noise
         signal = signal + noise.T
 

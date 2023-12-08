@@ -99,8 +99,8 @@ class MTSimulation:
                     # Compute the predictions
                     predictions_angles, predictions_dist = self.method.compute_predictions(samples)
                     # Compute the loss
-                    loss_angles.append(np.array(doa)-predictions_angles)
-                    loss_dist.append(np.array(dist)-predictions_dist)
+                    loss_angles.append(np.array(doa)-np.sort(predictions_angles))
+                    loss_dist.append(np.array(dist)-np.sort(predictions_dist))
                 # Store the results
                 results_angles[snr_idx, t_idx] = np.sqrt(np.mean(np.power(loss_angles, 2)))
                 results_distances[snr_idx, t_idx] = np.sqrt(np.mean(np.power(loss_dist, 2)))
@@ -110,18 +110,18 @@ class MTSimulation:
         plt.subplot(1, 2, 1)
         plt.title(f'DOA = {np.rad2deg(doa)}')
         plt.xlabel('SNR (dB)')
-        plt.ylabel('RMSE(angle) (dB)')
+        plt.ylabel('RMSE(angle)')
         for idx, T in enumerate(self.sample_range):
-            plt.plot(self.snr_range, 10 * np.log10(results_angles[:, idx]), label=f'T = {T}')
+            plt.plot(self.snr_range, results_angles[:, idx], label=f'T = {T}')
         plt.legend()
         plt.grid()
 
         plt.subplot(1, 2, 2)
         plt.title(f'Distances = {dist}')
         plt.xlabel('SNR (dB)')
-        plt.ylabel('RMSE(distance) (dB)')
+        plt.ylabel('RMSE(distance)')
         for idx, T in enumerate(self.sample_range):
-            plt.plot(self.snr_range, 10 * np.log10(results_distances[:, idx]), label=f'T = {T}')
+            plt.plot(self.snr_range, results_distances[:, idx], label=f'T = {T}')
         plt.legend()
         plt.grid()
 
@@ -287,9 +287,9 @@ class MTSimulation:
         SNR = self.snr_range[0]
         S = self.source_range[0]
         # doa = self.module.choose_angles(S)
-        doa = [np.deg2rad(65)]
+        doa = np.deg2rad([45, 60])
         # dist = self.module.choose_distances(S)
-        dist = [15]
+        dist = [15, 30]
         for t_idx, snapshots in enumerate(self.sample_range):
             loss_angles = []
             loss_dist = []
@@ -300,8 +300,8 @@ class MTSimulation:
                 # Compute the predictions
                 predictions_angles, predictions_dist = self.method.compute_predictions(samples, num_sources=S)
                 # Compute the loss
-                loss_angles.append(np.array(doa) - predictions_angles)
-                loss_dist.append(np.array(dist) - predictions_dist)
+                loss_angles.append(np.array(doa) - np.sort(predictions_angles))
+                loss_dist.append(np.array(dist) - np.sort(predictions_dist))
                 # Store the results
             results_angles[t_idx] += np.sqrt(np.mean(np.power(loss_angles, 2)))
             results_dist[t_idx] += np.sqrt(np.mean(np.power(loss_dist, 2)))

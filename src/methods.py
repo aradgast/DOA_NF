@@ -68,7 +68,7 @@ class MUSIC2D:
         self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi/1800)
         self.fraunhofer_distance, D = self.module.calculate_fraunhofer_distance()
         self.distance_range = np.linspace(1, int(np.round(self.fraunhofer_distance)),
-                                          int(np.round(self.fraunhofer_distance) - 1) * 100)
+                                          int(np.round(self.fraunhofer_distance) - 1) * 10)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
     def compute_predictions(self, signal, num_sources: int = None):

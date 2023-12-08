@@ -38,12 +38,13 @@ if __name__ == '__main__':
     #################################################
 
     ############### MUSIC 2D ########################
-    snr = [5, 7, 10, 12, 15, 18, 20, 22, 25]
-    # T = [10, 40, 70, 100, 300, 600, 1000]
-    T = [100]
+    # snr = [5, 10, 15, 20, 25]
+    snr = [6]
+    T = [10, 40, 70, 100, 300, 600, 800, 1000]
+    # T = [100]
     S = [2]
     M = 5
-    wavelength = 15
+    wavelength = 5
     array_geometry = 'ULA'
     module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength, is_2d=True)
 
@@ -78,6 +79,6 @@ if __name__ == '__main__':
                        sample_range=T,
                        is_2d=True)
     # results = sim.run_snr_sources(show_plot=False, save_plot=True)
-    results = sim.run_snr_samples(show_plot=False, save_plot=True)
-    # results = sim.run_NumberofSnapshot(show_plot=True, save_plot=True)
+    # results = sim.run_snr_samples(show_plot=False, save_plot=True)
+    results = sim.run_NumberofSnapshot(show_plot=False, save_plot=True)
     ###########################################################
