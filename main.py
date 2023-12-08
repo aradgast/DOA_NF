@@ -38,11 +38,12 @@ if __name__ == '__main__':
     #################################################
 
     ############### MUSIC 2D ########################
-    snr = [5, 15, 30]
-    T = [10, 50, 100]
-    S = [3, 3]
-    M = 9
-    wavelength = 1
+    snr = [5, 7, 10, 12, 15, 18, 20, 22, 25]
+    # T = [10, 40, 70, 100, 300, 600, 1000]
+    T = [100]
+    S = [2]
+    M = 5
+    wavelength = 15
     array_geometry = 'ULA'
     module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength, is_2d=True)
 
@@ -50,31 +51,33 @@ if __name__ == '__main__':
                      num_sources=S[0])
     signal = Signal(module=module,
                     num_sources=S[0])
+    print(f"Fraunhofer distance: {module.calculate_fraunhofer_distance()}")
     ################## SINGLE RUN ##################
-    angles = module.choose_angles(S[0])
-    distances = module.choose_distances(S[0])
-    print(f"True Angles: {np.rad2deg(angles)}")
-    print(f"True Distances: {distances},"
-          f" Fraunhofer distance: {module.calculate_fraunhofer_distance()[0]}")
-    sample = signal.generate_2d(snr=snr[-1],
-                                angles=angles,
-                                distances=distances,
-                                num_samples=T[-1])
-    pred_angles, pred_distances = method.compute_predictions(sample)
-    print(f"Angles: {np.rad2deg(pred_angles)}")
-    print(f"Radius: {pred_distances}")
+    # # angles = module.choose_angles(S[0])
+    # # distances = module.choose_distances(S[0])
+    # angles = [-np.pi/3, np.pi/3]
+    # distances = [5, 12.5]
+    # print(f"True Angles: {np.rad2deg(angles)}")
+    # print(f"True Distances: {distances}")
+    # sample = signal.generate_2d(snr=snr[-1],
+    #                             angles=angles,
+    #                             distances=distances,
+    #                             num_samples=T[-1])
+    # pred_angles, pred_distances = method.compute_predictions(sample)
+    # print(f"Angles: {np.rad2deg(pred_angles)}")
+    # print(f"Radius: {pred_distances}")
     ###########################################################
     ################## MONTE CARLO ############################
-    # sim = MTSimulation(iteration_num=10,
-    #                    module=module,
-    #                    method=method,
-    #                    signal=signal,
-    #                    loss=compute_mse_loss,
-    #                    snr_range=snr,
-    #                    source_range=S,
-    #                    sample_range=T,
-    #                    is_2d=True)
+    sim = MTSimulation(iteration_num=100,
+                       module=module,
+                       method=method,
+                       signal=signal,
+                       loss=compute_mse_loss,
+                       snr_range=snr,
+                       source_range=S,
+                       sample_range=T,
+                       is_2d=True)
     # results = sim.run_snr_sources(show_plot=False, save_plot=True)
-    # results = sim.run_snr_samples(show_plot=False, save_plot=True)
-    # results = sim.run_NumberofSnapshot(show_plot=False, save_plot=True)
+    results = sim.run_snr_samples(show_plot=False, save_plot=True)
+    # results = sim.run_NumberofSnapshot(show_plot=True, save_plot=True)
     ###########################################################

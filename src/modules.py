@@ -115,7 +115,7 @@ class Module:
             raise ValueError(f"The array geometry, {self.array_geometry}, is not recognized")
         distances = []
         while len(distances) < num_distances:
-            distance = np.random.randint(distance_low, distance_high)
+            distance = np.random.randint(1, distance_high)
             if len(distances) == 0:
                 distances.append(distance)
             else:

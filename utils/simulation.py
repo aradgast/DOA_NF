@@ -85,9 +85,13 @@ class MTSimulation:
         # Run the simulation
         S = self.source_range[0]
         doa = self.module.choose_angles(S)
-        dist = self.module.choose_distances(S)
+        doa = np.deg2rad([45, 60])
+        # dist = self.module.choose_distances(S)
+        dist = [15, 30]
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
+                loss_angles = []
+                loss_dist = []
                 for i in range(self.iteration_num):
                     # Generate the signal
                     samples = self.signal.generate_2d(snr=snr, angles=doa, distances=dist,
@@ -95,18 +99,18 @@ class MTSimulation:
                     # Compute the predictions
                     predictions_angles, predictions_dist = self.method.compute_predictions(samples)
                     # Compute the loss
-                    loss_i_angles = self.loss(predictions_angles, doa)
-                    loss_i_dist = self.loss(predictions_dist, dist)
-                    # Store the results
-                    results_angles[snr_idx, t_idx] += (loss_i_angles / float(self.iteration_num))
-                    results_distances[snr_idx, t_idx] += (loss_i_dist / float(self.iteration_num))
+                    loss_angles.append(np.array(doa)-predictions_angles)
+                    loss_dist.append(np.array(dist)-predictions_dist)
+                # Store the results
+                results_angles[snr_idx, t_idx] = np.sqrt(np.mean(np.power(loss_angles, 2)))
+                results_distances[snr_idx, t_idx] = np.sqrt(np.mean(np.power(loss_dist, 2)))
                 print(f'SNR = {snr}, T = {t}:  '
-                      f'MSE(angles, dist) = ({results_angles[snr_idx, t_idx]}, {results_distances[snr_idx, t_idx]})')
+                      f'RMSE(angles, dist) = ({results_angles[snr_idx, t_idx]}, {results_distances[snr_idx, t_idx]})')
         # Plot the results
         plt.subplot(1, 2, 1)
         plt.title(f'DOA = {np.rad2deg(doa)}')
         plt.xlabel('SNR (dB)')
-        plt.ylabel('MSE(angle) (dB)')
+        plt.ylabel('RMSE(angle) (dB)')
         for idx, T in enumerate(self.sample_range):
             plt.plot(self.snr_range, 10 * np.log10(results_angles[:, idx]), label=f'T = {T}')
         plt.legend()
@@ -115,13 +119,13 @@ class MTSimulation:
         plt.subplot(1, 2, 2)
         plt.title(f'Distances = {dist}')
         plt.xlabel('SNR (dB)')
-        plt.ylabel('MSE(distance) (dB)')
+        plt.ylabel('RMSE(distance) (dB)')
         for idx, T in enumerate(self.sample_range):
             plt.plot(self.snr_range, 10 * np.log10(results_distances[:, idx]), label=f'T = {T}')
         plt.legend()
         plt.grid()
 
-        plt.suptitle(f"MSE vs SNR and number of samples, S = {S}", fontsize=16)
+        plt.suptitle(f"RMSE vs SNR and number of samples, S = {S}", fontsize=16)
         plt.tight_layout()
 
         if show_plot:
@@ -282,10 +286,13 @@ class MTSimulation:
         # Run the simulation
         SNR = self.snr_range[0]
         S = self.source_range[0]
-        doa = self.module.choose_angles(S)
-        dist = self.module.choose_distances(S)
-        print(f"")
+        # doa = self.module.choose_angles(S)
+        doa = [np.deg2rad(65)]
+        # dist = self.module.choose_distances(S)
+        dist = [15]
         for t_idx, snapshots in enumerate(self.sample_range):
+            loss_angles = []
+            loss_dist = []
             for i in range(self.iteration_num):
                 # Generate the signal
                 samples = self.signal.generate_2d(snr=SNR, angles=doa, distances=dist,
@@ -293,30 +300,30 @@ class MTSimulation:
                 # Compute the predictions
                 predictions_angles, predictions_dist = self.method.compute_predictions(samples, num_sources=S)
                 # Compute the loss
-
-                loss_i_angles = self.loss(predictions_angles, doa)
-                loss_i_dist = self.loss(predictions_dist, doa)
+                loss_angles.append(np.array(doa) - predictions_angles)
+                loss_dist.append(np.array(dist) - predictions_dist)
                 # Store the results
-                results_angles[t_idx] += (loss_i_angles / float(self.iteration_num))
-                results_dist[t_idx] += (loss_i_dist / float(self.iteration_num))
+            results_angles[t_idx] += np.sqrt(np.mean(np.power(loss_angles, 2)))
+            results_dist[t_idx] += np.sqrt(np.mean(np.power(loss_dist, 2)))
             print(f'Number of Snapshots = {snapshots}:  '
-                  f'MSE(angles, distances) = ({results_angles[t_idx]}, {results_dist[t_idx]})')
+                  f'RMSE(angles, distances) = ({results_angles[t_idx]}, {results_dist[t_idx]})')
         # Plot the results
+        plt.figure()
         plt.subplot(1, 2, 1)
         plt.title(f'DOA = {np.rad2deg(doa)}')
         plt.xlabel('Number of Snapshot')
-        plt.ylabel('MSE(angle) (dB)')
-        plt.semilogx(self.sample_range, 10 * np.log10(results_angles))
+        plt.ylabel('RMSE(angle)')
+        plt.semilogx(self.sample_range, results_angles)
         plt.grid()
 
         plt.subplot(1, 2, 2)
         plt.title(f'Distance = {dist}')
         plt.xlabel('Number of Snapshot')
-        plt.ylabel('MSE(dist) (dB)')
-        plt.semilogx(self.sample_range, 10 * np.log10(results_dist))
+        plt.ylabel('RMSE(dist)')
+        plt.semilogx(self.sample_range, results_dist)
         plt.grid()
 
-        plt.title(f'MSE vs NumberofSnapshot, SNR = {SNR}, S = {S}')
+        plt.suptitle(f'RMSE vs NumberofSnapshot, SNR = {SNR}, S = {S}')
         plt.tight_layout()
         if show_plot:
             plt.show()
