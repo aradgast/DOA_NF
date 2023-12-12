@@ -61,7 +61,6 @@ class Module:
             array = np.tile(array, (1, self.num_sensors))
             array_square = np.power(array, 2)
 
-
             first_order = np.sin(theta)
             first_order = np.tile(first_order, (1, self.num_sensors))
             first_order = array @ first_order.T
@@ -74,10 +73,32 @@ class Module:
             time_delay = first_order + second_order
 
             return np.exp(-1j * 2 * np.pi * time_delay / self.wavelength)
+
+
         else:
             raise ValueError('Invalid array geometry')
 
-
+    def _compute_steering_vector_full_phase(self, theta: np.ndarray, dist: np.ndarray):
+        """
+        
+        :param theta: 
+        :param dist: 
+        :return: 
+        """''
+        if self.array_geometry == "ULA":
+            theta, dist = np.meshgrid(theta, dist)
+            limit = np.floor(self.num_sensors / 2)
+            array = np.linspace(-limit, limit, self.num_sensors, endpoint=True)
+            # array, _ = np.meshgrid(array, array)
+            mul_1 = dist / self.wavelength
+            sqrt_1 = (array / np.tile(dist[:, :, np.newaxis], (1, 1, self.num_sensors))) ** 2
+            sqrt_2 = - 2 * (array / np.tile(dist[:, :, np.newaxis], (1, 1, self.num_sensors))) * np.sin(
+                np.tile(theta[:, :, np.newaxis], (1, 1, self.num_sensors)))
+            mul_2 = 1 - np.sqrt(1 + sqrt_1 + sqrt_2)
+            exp = np.einsum('ij,ijk->ijk', mul_1, mul_2)
+            return np.exp(-2 * np.pi * 1j * exp.T)
+        else:
+            raise ValueError("Invalid array geometry")
     def calculate_fraunhofer_distance(self):
         if self.array_geometry == "ULA":
             D = (self.num_sensors - 1) * self.wavelength / 2

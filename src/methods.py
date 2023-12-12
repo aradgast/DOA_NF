@@ -66,9 +66,8 @@ class MUSIC2D:
         self.module = module
         self.num_sources = num_sources
         self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi/1800)
-        self.fraunhofer_distance, D = self.module.calculate_fraunhofer_distance()
-        self.distance_range = np.linspace(1, int(np.round(self.fraunhofer_distance)),
-                                          int(np.round(self.fraunhofer_distance) - 1) * 10)
+        self.fraunhofer_distance, self.D = self.module.calculate_fraunhofer_distance()
+        self.distance_range = np.arange(self.module.wavelength, 50, 0.01)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
     def compute_predictions(self, signal, num_sources: int = None):
@@ -97,7 +96,6 @@ class MUSIC2D:
         var_2 = np.transpose(var_1.conj(), (2, 1, 0))
         inverse_spectrum = np.real(np.einsum("ijk,kji->ji", var_1, var_2))
         music_spectrum = 1 / inverse_spectrum
-
 
         peaks = self.find_spectrum_peaks(music_spectrum)
         peaks = np.array(peaks)

@@ -85,9 +85,9 @@ class MTSimulation:
         # Run the simulation
         S = self.source_range[0]
         doa = self.module.choose_angles(S)
-        doa = np.deg2rad([45, 60])
+        doa = np.deg2rad([65])
         # dist = self.module.choose_distances(S)
-        dist = [15, 30]
+        dist = [15]
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
                 loss_angles = []
@@ -128,10 +128,11 @@ class MTSimulation:
         plt.suptitle(f"RMSE vs SNR and number of samples, S = {S}", fontsize=16)
         plt.tight_layout()
 
-        if show_plot:
-            plt.show()
         if save_plot:
             plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_snr_samples.jpeg")
+
+        if show_plot:
+            plt.show()
         return results_angles, results_distances
 
     def __run_snr_sources_1D(self, show_plot: bool = True, save_plot: bool = False):
@@ -246,7 +247,6 @@ class MTSimulation:
         SNR = self.snr_range[0]
         self.source_range = self.source_range[0]
         doa = self.module.choose_angles(self.source_range)
-        print(f"")
         for s_idx, num_samples in enumerate(self.sample_range):
             for i in range(self.iteration_num):
                 # Generate the signal
@@ -331,3 +331,50 @@ class MTSimulation:
             plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_NumberofSnapshot.jpeg")
 
         return results_angles, results_dist
+
+
+    def run_rmse_distance(self, simulation_length: int=10, show_plot: bool=True, save_plot: bool = False):
+
+        result_distance = np.zeros(simulation_length)
+        result_angles = np.zeros(simulation_length)
+        # Run the simulation
+        SNR = self.snr_range[0]
+        S = self.source_range[0]
+        doa = self.module.choose_angles(num_angles=1)
+        distances = np.round(np.linspace(1, 10, simulation_length), 2)
+        for idx, dist in enumerate(distances):
+            loss_angles = []
+            loss_dist = []
+            for i in range(self.iteration_num):
+                samples = self.signal.generate_2d(snr=SNR, angles=doa, distances=[dist], num_samples=100)
+                predictions_angles, predictions_dist = self.method.compute_predictions(samples)
+                loss_angles.append(np.array(doa) - np.sort(predictions_angles))
+                loss_dist.append(np.array(dist) - np.sort(predictions_dist))
+            result_angles[idx] = np.sqrt(np.mean(np.power(loss_angles, 2)))
+            result_distance[idx] = np.sqrt(np.mean(np.power(loss_dist, 2)))
+            print(f"RMSE to Distance, Distance = {dist}, RMSE = ({result_angles[idx]}, {result_distance[idx]})")
+
+        # Plot the results
+        plt.figure()
+        plt.subplot(1, 2, 1)
+        plt.title(f'DOA = {np.rad2deg(doa)}')
+        plt.xlabel('Distance(m)')
+        plt.ylabel('RMSE(angle)')
+        plt.semilogy(distances, result_angles)
+        plt.grid()
+
+        plt.subplot(1, 2, 2)
+        plt.title(f'D_f = {self.method.fraunhofer_distance}')
+        plt.xlabel('Distance(m)')
+        plt.ylabel('RMSE(dist)')
+        plt.semilogy(distances, result_distance)
+        plt.grid()
+
+        plt.suptitle(f'RMSE vs distance, SNR = {SNR}, S = {S}')
+        plt.tight_layout()
+        if save_plot:
+            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\RMSE vs distance.jpeg")
+        if show_plot:
+            plt.show()
+
+

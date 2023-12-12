@@ -39,12 +39,12 @@ if __name__ == '__main__':
 
     ############### MUSIC 2D ########################
     # snr = [5, 10, 15, 20, 25]
-    snr = [6]
-    T = [10, 40, 70, 100, 300, 600, 800, 1000]
+    snr = [5, 10, 15, 20]
+    T = [25]
     # T = [100]
-    S = [2]
+    S = [1]
     M = 5
-    wavelength = 5
+    wavelength = 1
     array_geometry = 'ULA'
     module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength, is_2d=True)
 
@@ -54,10 +54,10 @@ if __name__ == '__main__':
                     num_sources=S[0])
     print(f"Fraunhofer distance: {module.calculate_fraunhofer_distance()}")
     ################## SINGLE RUN ##################
-    # # angles = module.choose_angles(S[0])
-    # # distances = module.choose_distances(S[0])
-    # angles = [-np.pi/3, np.pi/3]
-    # distances = [5, 12.5]
+    # angles = module.choose_angles(S[0])
+    # distances = module.choose_distances(S[0])
+    # angles = [-np.pi/3]
+    # distances = [12.5]
     # print(f"True Angles: {np.rad2deg(angles)}")
     # print(f"True Distances: {distances}")
     # sample = signal.generate_2d(snr=snr[-1],
@@ -79,6 +79,7 @@ if __name__ == '__main__':
                        sample_range=T,
                        is_2d=True)
     # results = sim.run_snr_sources(show_plot=False, save_plot=True)
-    # results = sim.run_snr_samples(show_plot=False, save_plot=True)
-    results = sim.run_NumberofSnapshot(show_plot=False, save_plot=True)
+    results = sim.run_snr_samples(show_plot=True, save_plot=True)
+    # # results = sim.run_NumberofSnapshot(show_plot=False, save_plot=True)
+    # sim.run_rmse_distance(15, save_plot=True, show_plot=True)
     ###########################################################
