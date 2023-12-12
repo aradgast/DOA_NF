@@ -85,9 +85,9 @@ class MTSimulation:
         # Run the simulation
         S = self.source_range[0]
         doa = self.module.choose_angles(S)
-        doa = np.deg2rad([65])
+        doa = np.deg2rad([-35, 15, 75])
         # dist = self.module.choose_distances(S)
-        dist = [15]
+        dist = [7, 13, 18]
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
                 loss_angles = []
@@ -287,9 +287,9 @@ class MTSimulation:
         SNR = self.snr_range[0]
         S = self.source_range[0]
         # doa = self.module.choose_angles(S)
-        doa = np.deg2rad([45, 60])
+        doa = np.deg2rad([-80, 40, 15, 65])
         # dist = self.module.choose_distances(S)
-        dist = [15, 30]
+        dist = [5, 8, 13, 17]
         for t_idx, snapshots in enumerate(self.sample_range):
             loss_angles = []
             loss_dist = []
@@ -325,10 +325,12 @@ class MTSimulation:
 
         plt.suptitle(f'RMSE vs NumberofSnapshot, SNR = {SNR}, S = {S}')
         plt.tight_layout()
-        if show_plot:
-            plt.show()
+
         if save_plot:
             plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_NumberofSnapshot.jpeg")
+
+        if show_plot:
+            plt.show()
 
         return results_angles, results_dist
 

@@ -34,7 +34,7 @@ class MUSIC:
         if len(predictions) != num_sources:
             tmp = np.mean(predictions)
             predictions = list(predictions)
-            for i in range(num_sources-len(predictions)):
+            for i in range(num_sources - len(predictions)):
                 predictions.append(tmp)
             predictions = np.array(predictions)
         # self.plot_spectrum(music_spectrum)
@@ -65,12 +65,13 @@ class MUSIC2D:
     def __init__(self, module: Module, num_sources: int = None):
         self.module = module
         self.num_sources = num_sources
-        self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi/1800)
+        self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 1800)
         self.fraunhofer_distance, self.D = self.module.calculate_fraunhofer_distance()
-        self.distance_range = np.arange(self.module.wavelength, 50, 0.01)
+        self.distance_range = np.arange(self.module.wavelength, 30, 0.1)
+        self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
-    def compute_predictions(self, signal, num_sources: int = None):
+    def compute_predictions(self, signal, num_sources: int = None, plot_spectrum: bool = False):
         """
         :param num_sources:
         :param signal:
@@ -83,40 +84,22 @@ class MUSIC2D:
         eig_vecs = eig_vecs[:, np.argsort(eig_vals)[::-1]]
         noise_eig_vecs = eig_vecs[:, self.num_sources:]
 
-        # music_spectrum = np.zeros((len(self.thera_range), len(self.distance_range)))
-        # for idx_angle, theta in enumerate(self.thera_range):
-        #     for idx_dist, dist in enumerate(self.distance_range):
-        #         steering_vec = self.module.compute_steering_vector(theta, dist)
-        #         steering_vec = np.squeeze(steering_vec)
-        #         inverse_spectrum = np.real(steering_vec.conj().T @ noise_eig_vecs @ noise_eig_vecs.conj().T @ steering_vec)
-        #         music_spectrum[idx_angle, idx_dist] = 1 / inverse_spectrum
-
-        steering_vec = self.module.compute_steering_vector(self.thera_range, self.distance_range)
-        var_1 = np.einsum("ijk,kl->ijl", np.transpose(steering_vec.conj(), (2, 1, 0)), noise_eig_vecs)
+        var_1 = np.einsum("ijk,kl->ijl", np.transpose(self.grid.conj(), (2, 1, 0)), noise_eig_vecs)
         var_2 = np.transpose(var_1.conj(), (2, 1, 0))
         inverse_spectrum = np.real(np.einsum("ijk,kji->ji", var_1, var_2))
         music_spectrum = 1 / inverse_spectrum
 
-        peaks = self.find_spectrum_peaks(music_spectrum)
-        peaks = np.array(peaks)
-        predict_theta = self.thera_range[peaks[0]][0:self.num_sources]
-        predict_dist = self.distance_range[peaks[1]][0:self.num_sources]
-        # self.plot_heatmap(music_spectrum)
-        # self.plot_3d_spectrum(music_spectrum)
-        return predict_theta, predict_dist
+        # peaks = self.find_spectrum_peaks(music_spectrum)
+        # peaks = np.array(peaks)
+        # predict_theta = self.thera_range[peaks[0]][0:num_sources]
+        # predict_dist = self.distance_range[peaks[1]][0:num_sources]
 
-    def plot_heatmap(self, spectrum):
-        data = np.log1p(spectrum)
-        plt.figure()
-        plt.title("MUSIC spectrum")
-        plt.imshow(data, cmap='viridis', aspect='auto', origin='lower',
-                   extent=[min(self.distance_range), max(self.distance_range),
-                           min(np.rad2deg(self.thera_range)), max(np.rad2deg(self.thera_range))])
-        plt.colorbar()
-        plt.xlabel('Distance')
-        plt.ylabel('Theta')
-        plt.grid()
-        plt.show()
+        predict_theta, predict_dist = self.maskpeaks(music_spectrum, num_sources)
+
+        if plot_spectrum:
+            self.plot_3d_spectrum(music_spectrum)
+
+        return predict_theta, predict_dist
 
     def plot_3d_spectrum(self, spectrum):
         # Creating figure
@@ -152,6 +135,29 @@ class MUSIC2D:
         original_idx = np.unravel_index(peaks, spectrum.shape)
 
         return list(original_idx)
+
+    def maskpeaks(self, spectrum: np.ndarray, P: int):
+
+        top_indxs = np.argpartition(spectrum.reshape(1, -1).squeeze(), -P)[-P:]
+        max_row = (np.floor(np.divide(top_indxs, spectrum.shape[1]))).astype(int)
+        max_col = (top_indxs % spectrum.shape[1]).astype(int)
+        soft_row = []
+        soft_col = []
+        cell_size = 10
+        for i, (max_r, max_c) in enumerate(zip(max_row, max_col)):
+            max_row_cell_idx = max_r - cell_size + \
+                               np.arange(2 * cell_size + 1, dtype=int).reshape(-1, 1)
+            max_col_cell_idx = max_c - cell_size + \
+                               np.arange(2 * cell_size + 1, dtype=int).reshape(1, -1)
+
+            metrix_thr = spectrum[max_row_cell_idx, max_col_cell_idx]
+            metrix_thr /= np.max(metrix_thr)
+            soft_max = np.exp(metrix_thr) / np.sum(np.exp(metrix_thr))
+
+            soft_row.append(self.thera_range[max_row_cell_idx].T @ np.sum(soft_max, axis=1))
+            soft_col.append(self.distance_range[max_col_cell_idx] @ np.sum(soft_max, axis=0))
+
+        return soft_row, soft_col
 
 
 if __name__ == '__main__':
