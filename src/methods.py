@@ -71,7 +71,8 @@ class MUSIC2D:
         self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
-    def compute_predictions(self, signal, num_sources: int = None, plot_spectrum: bool = False):
+    def compute_predictions(self, signal, num_sources: int = None,
+                            plot_spectrum: bool = False, soft_decsicion: bool = False):
         """
         :param num_sources:
         :param signal:
@@ -89,12 +90,13 @@ class MUSIC2D:
         inverse_spectrum = np.real(np.einsum("ijk,kji->ji", var_1, var_2))
         music_spectrum = 1 / inverse_spectrum
 
-        # peaks = self.find_spectrum_peaks(music_spectrum)
-        # peaks = np.array(peaks)
-        # predict_theta = self.thera_range[peaks[0]][0:num_sources]
-        # predict_dist = self.distance_range[peaks[1]][0:num_sources]
-
-        predict_theta, predict_dist = self.maskpeaks(music_spectrum, num_sources)
+        if soft_decsicion:
+            predict_theta, predict_dist = self.maskpeaks(music_spectrum, num_sources)
+        else:
+            peaks = self.find_spectrum_peaks(music_spectrum)
+            peaks = np.array(peaks)
+            predict_theta = self.thera_range[peaks[0]][0:num_sources]
+            predict_dist = self.distance_range[peaks[1]][0:num_sources]
 
         if plot_spectrum:
             self.plot_3d_spectrum(music_spectrum)
@@ -143,7 +145,7 @@ class MUSIC2D:
         max_col = (top_indxs % spectrum.shape[1]).astype(int)
         soft_row = []
         soft_col = []
-        cell_size = 10
+        cell_size = 20
         for i, (max_r, max_c) in enumerate(zip(max_row, max_col)):
             max_row_cell_idx = max_r - cell_size + \
                                np.arange(2 * cell_size + 1, dtype=int).reshape(-1, 1)
