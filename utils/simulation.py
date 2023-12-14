@@ -85,9 +85,9 @@ class MTSimulation:
         # Run the simulation
         S = self.source_range[0]
         doa = self.module.choose_angles(S)
-        doa = np.deg2rad([-35, 15, 75])
+        doa = np.deg2rad([-60, -10, 40])
         # dist = self.module.choose_distances(S)
-        dist = [7, 13, 18]
+        dist = [3, 5, 7]
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
                 loss_angles = []
@@ -97,7 +97,7 @@ class MTSimulation:
                     samples = self.signal.generate_2d(snr=snr, angles=doa, distances=dist,
                                                       num_samples=t, num_sources=S)
                     # Compute the predictions
-                    predictions_angles, predictions_dist = self.method.compute_predictions(samples)
+                    predictions_angles, predictions_dist = self.method.compute_predictions(samples, soft_decsicion=True)
                     # Compute the loss
                     loss_angles.append(np.array(doa)-np.sort(predictions_angles))
                     loss_dist.append(np.array(dist)-np.sort(predictions_dist))
@@ -125,7 +125,7 @@ class MTSimulation:
         plt.legend()
         plt.grid()
 
-        plt.suptitle(f"RMSE vs SNR and number of samples, S = {S}", fontsize=16)
+        plt.suptitle(f"RMSE vs SNR, S = {S}", fontsize=16)
         plt.tight_layout()
 
         if save_plot:
@@ -287,9 +287,9 @@ class MTSimulation:
         SNR = self.snr_range[0]
         S = self.source_range[0]
         # doa = self.module.choose_angles(S)
-        doa = np.deg2rad([-80, 40, 15, 65])
+        doa = np.deg2rad([40, 65])
         # dist = self.module.choose_distances(S)
-        dist = [5, 8, 13, 17]
+        dist = [3, 7]
         for t_idx, snapshots in enumerate(self.sample_range):
             loss_angles = []
             loss_dist = []
@@ -298,7 +298,7 @@ class MTSimulation:
                 samples = self.signal.generate_2d(snr=SNR, angles=doa, distances=dist,
                                                   num_samples=snapshots, num_sources=S)
                 # Compute the predictions
-                predictions_angles, predictions_dist = self.method.compute_predictions(samples, num_sources=S)
+                predictions_angles, predictions_dist = self.method.compute_predictions(samples, num_sources=S, soft_decsicion=True)
                 # Compute the loss
                 loss_angles.append(np.array(doa) - np.sort(predictions_angles))
                 loss_dist.append(np.array(dist) - np.sort(predictions_dist))

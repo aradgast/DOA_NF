@@ -67,7 +67,7 @@ class MUSIC2D:
         self.num_sources = num_sources
         self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 1800)
         self.fraunhofer_distance, self.D = self.module.calculate_fraunhofer_distance()
-        self.distance_range = np.arange(self.module.wavelength, 30, 0.1)
+        self.distance_range = np.arange(self.module.wavelength, 30, 0.01)
         self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
@@ -149,12 +149,16 @@ class MUSIC2D:
         max_col = (top_indxs % spectrum.shape[1]).astype(int)
         soft_row = []
         soft_col = []
-        cell_size = 30
+        cell_size = 20
         for i, (max_r, max_c) in enumerate(zip(max_row, max_col)):
             max_row_cell_idx = max_r - cell_size + \
                                np.arange(2 * cell_size + 1, dtype=int).reshape(-1, 1)
+            max_row_cell_idx = max_row_cell_idx[max_row_cell_idx >= 0]
+            max_row_cell_idx = max_row_cell_idx[max_row_cell_idx <= spectrum.shape[0]].reshape(-1, 1)
             max_col_cell_idx = max_c - cell_size + \
                                np.arange(2 * cell_size + 1, dtype=int).reshape(1, -1)
+            max_col_cell_idx = max_col_cell_idx[max_col_cell_idx >= 0]
+            max_col_cell_idx = max_col_cell_idx[max_col_cell_idx <= spectrum.shape[1]].reshape(1, -1)
 
             metrix_thr = spectrum[max_row_cell_idx, max_col_cell_idx]
             metrix_thr /= np.max(metrix_thr)
