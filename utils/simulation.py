@@ -89,9 +89,9 @@ class MTSimulation:
         # Run the simulation
         S = self.source_range[0]
         doa = self.module.choose_angles(S)
-        doa = np.deg2rad([40, 65])
+        doa = np.deg2rad([-60, -10, 40])
         # dist = self.module.choose_distances(S)
-        dist = [3, 7]
+        dist = [3, 5, 7]
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
                 loss_angles = []
@@ -103,7 +103,8 @@ class MTSimulation:
                     # Compute the predictions
                     predictions_angles, predictions_dist = self.method.compute_predictions(samples,
                                                                                            soft_decsicion=self.soft_decision,
-                                                                                           threshold=self.threshold)
+                                                                                           threshold=self.threshold,
+                                                                                           plot_spectrum=False)
                     # Compute the loss
                     loss_angles.append(np.array(doa)-np.sort(predictions_angles))
                     loss_dist.append(np.array(dist)-np.sort(predictions_dist))

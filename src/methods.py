@@ -107,13 +107,24 @@ class MUSIC2D:
 
         return predict_theta, predict_dist
 
-    def plot_3d_spectrum(self, spectrum):
+    def plot_3d_spectrum(self, spectrum, highlight_coordinates=None):
         # Creating figure
         x, y = np.meshgrid(self.distance_range, np.rad2deg(self.thera_range))
         # Plotting the 3D surface
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.plot_surface(x, y, np.log1p(spectrum), cmap='viridis')
+
+        if highlight_coordinates:
+            highlight_coordinates = np.array(highlight_coordinates)
+            ax.scatter(
+                highlight_coordinates[:, 0],
+                np.rad2deg(highlight_coordinates[:, 1]),
+                np.log1p(highlight_coordinates[:, 2]),
+                color='red',
+                s=50,
+                label='Highlight Points'
+            )
         ax.set_title('MUSIC spectrum')
         ax.set_xlim(self.distance_range[0], self.distance_range[-1])
         ax.set_ylim(np.rad2deg(self.thera_range[0]), np.rad2deg(self.thera_range[-1]))
@@ -121,6 +132,9 @@ class MUSIC2D:
         ax.set_ylabel('Theta')
         ax.set_xlabel('Radius')
         ax.set_zlabel('Power')
+
+        if highlight_coordinates:
+            ax.legend() # Adding a legend
 
         # Display the plot
         plt.show()

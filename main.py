@@ -42,7 +42,7 @@ if __name__ == '__main__':
     # T = [10, 50, 100, 500, 1000]
     snr = np.array([5, 10, 15, 20, 25])
     T = [100]
-    S = [2]
+    S = [3]
     M = 5
     wavelength = 1
     array_geometry = 'ULA'
@@ -79,8 +79,8 @@ if __name__ == '__main__':
                        source_range=S,
                        sample_range=T,
                        is_2d=True,
-                       soft_decision=False,
-                       threshold=5)
+                       soft_decision=True,
+                       threshold=None)
     # results = sim.run_snr_sources(show_plot=False, save_plot=True)
     results = sim.run_snr_samples(show_plot=True, save_plot=True)
     # results = sim.run_NumberofSnapshot(show_plot=True, save_plot=True)
