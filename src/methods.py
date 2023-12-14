@@ -154,11 +154,12 @@ class MUSIC2D:
             max_row_cell_idx = max_r - cell_size + \
                                np.arange(2 * cell_size + 1, dtype=int).reshape(-1, 1)
             max_row_cell_idx = max_row_cell_idx[max_row_cell_idx >= 0]
-            max_row_cell_idx = max_row_cell_idx[max_row_cell_idx <= spectrum.shape[0]].reshape(-1, 1)
+            max_row_cell_idx = max_row_cell_idx[max_row_cell_idx < spectrum.shape[0]].reshape(-1, 1)
+
             max_col_cell_idx = max_c - cell_size + \
                                np.arange(2 * cell_size + 1, dtype=int).reshape(1, -1)
             max_col_cell_idx = max_col_cell_idx[max_col_cell_idx >= 0]
-            max_col_cell_idx = max_col_cell_idx[max_col_cell_idx <= spectrum.shape[1]].reshape(1, -1)
+            max_col_cell_idx = max_col_cell_idx[max_col_cell_idx < spectrum.shape[1]].reshape(1, -1)
 
             metrix_thr = spectrum[max_row_cell_idx, max_col_cell_idx]
             metrix_thr /= np.max(metrix_thr)

@@ -80,9 +80,9 @@ class Signal:
             source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
                              + 1j * np.random.randn(num_samples, num_sources)
         else:  # coherent signals
-            source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
+            source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, 1) \
                              + 1j * np.random.randn(num_samples, 1)
-            source_signals = np.repeat(source_signals, num_sources, axis=0)
+            source_signals = np.repeat(source_signals, num_sources, axis=1)
         # Compute the signal
         signal = steering_vectors @ source_signals.T
         # Add noise

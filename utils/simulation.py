@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sc
@@ -6,8 +8,8 @@ from src.modules import Module
 
 
 class MTSimulation:
-    def __init__(self, module: Module, iteration_num: int, method, signal, loss, snr_range: list,
-                 source_range: list, sample_range: list, is_2d: bool = False):
+    def __init__(self, module: Module, iteration_num: int, method, signal, loss, snr_range: list, source_range: list,
+                 sample_range: list, is_2d: bool = False, soft_decision: bool=False, threshold: int=None):
         self.module = module
         self.iteration_num = iteration_num
         self.method = method
@@ -17,6 +19,8 @@ class MTSimulation:
         self.sample_range = sample_range
         self.loss = loss
         self.is_2d = is_2d
+        self.soft_decision = soft_decision
+        self.threshold = threshold
 
     def run_snr_samples(self, show_plot: bool = True, save_plot: bool = False):
         if self.is_2d:
@@ -85,9 +89,9 @@ class MTSimulation:
         # Run the simulation
         S = self.source_range[0]
         doa = self.module.choose_angles(S)
-        doa = np.deg2rad([-60, -10, 40])
+        doa = np.deg2rad([40, 65])
         # dist = self.module.choose_distances(S)
-        dist = [3, 5, 7]
+        dist = [3, 7]
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
                 loss_angles = []
@@ -97,7 +101,9 @@ class MTSimulation:
                     samples = self.signal.generate_2d(snr=snr, angles=doa, distances=dist,
                                                       num_samples=t, num_sources=S)
                     # Compute the predictions
-                    predictions_angles, predictions_dist = self.method.compute_predictions(samples, soft_decsicion=True)
+                    predictions_angles, predictions_dist = self.method.compute_predictions(samples,
+                                                                                           soft_decsicion=self.soft_decision,
+                                                                                           threshold=self.threshold)
                     # Compute the loss
                     loss_angles.append(np.array(doa)-np.sort(predictions_angles))
                     loss_dist.append(np.array(dist)-np.sort(predictions_dist))
@@ -125,11 +131,21 @@ class MTSimulation:
         plt.legend()
         plt.grid()
 
-        plt.suptitle(f"RMSE vs SNR, S = {S}", fontsize=16)
+        title = f"RMSE vs SNR, S = {S}"
+        if self.soft_decision:
+            title += ", maskpeak"
+        if self.module.is_coherent:
+            title += ", coherent sources"
+        else:
+            title += ",non coherent sources"
+        if not self.threshold is None:
+            title += f", th={self.threshold}"
+
+        plt.suptitle(title)
         plt.tight_layout()
 
         if save_plot:
-            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_snr_samples.jpeg")
+            plt.savefig(os.path.join(os.getcwd(), "Results", "MUSIC_2D", title+".jpeg"))
 
         if show_plot:
             plt.show()
@@ -287,9 +303,9 @@ class MTSimulation:
         SNR = self.snr_range[0]
         S = self.source_range[0]
         # doa = self.module.choose_angles(S)
-        doa = np.deg2rad([40, 65])
+        dist = [3, 5, 7]
+        doa = np.deg2rad([-60, -10, 40])
         # dist = self.module.choose_distances(S)
-        dist = [3, 7]
         for t_idx, snapshots in enumerate(self.sample_range):
             loss_angles = []
             loss_dist = []
@@ -323,11 +339,19 @@ class MTSimulation:
         plt.semilogx(self.sample_range, results_dist)
         plt.grid()
 
-        plt.suptitle(f'RMSE vs NumberofSnapshot, SNR = {SNR}, S = {S}')
+        title = f"RMSE vs NumberofSnapshot, SNR = {SNR}, S = {S}"
+        if self.soft_decision:
+            title += ", maskpeak"
+        if self.module.is_coherent:
+            title += ", coherent sources"
+        else:
+            title += ",non coherent sources"
+
+        plt.suptitle(title)
         plt.tight_layout()
 
         if save_plot:
-            plt.savefig(r"C:\Users\agast\Documents\University\DOA_NF\Results\MUSIC_2D\run_NumberofSnapshot.jpeg")
+            plt.savefig(os.path.join(os.getcwd(), "Results", "MUSIC_2D", title + ".jpeg"))
 
         if show_plot:
             plt.show()

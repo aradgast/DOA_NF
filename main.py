@@ -38,15 +38,16 @@ if __name__ == '__main__':
     #################################################
 
     ############### MUSIC 2D ########################
-    # snr = [10]
+    # snr = [12]
     # T = [10, 50, 100, 500, 1000]
-    snr = [5 ,10, 15, 20, 25]
+    snr = np.array([5, 10, 15, 20, 25])
     T = [100]
-    S = [3]
+    S = [2]
     M = 5
     wavelength = 1
     array_geometry = 'ULA'
-    module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength, is_2d=True)
+    module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength,
+                    is_2d=True, is_coherent=False)
 
     method = MUSIC2D(module=module,
                      num_sources=S[0])
@@ -56,15 +57,15 @@ if __name__ == '__main__':
     ################## SINGLE RUN ##################
     # angles = module.choose_angles(S[0])
     # distances = module.choose_distances(S[0])
-    # angles = [-np.pi/3, np.pi/3]
-    # distances = [3, 5]
+    # angles = np.deg2rad([40, 65])
+    # distances = [3, 7]
     # print(f"True Angles: {np.rad2deg(angles)}")
     # print(f"True Distances: {distances}")
     # sample = signal.generate_2d(snr=snr[-1],
     #                             angles=angles,
     #                             distances=distances,
     #                             num_samples=T[-1])
-    # pred_angles, pred_distances = method.compute_predictions(sample, soft_decsicion=True)
+    # pred_angles, pred_distances = method.compute_predictions(sample, soft_decsicion=False, threshold=5)
     # print(f"Angles: {np.rad2deg(pred_angles)}")
     # print(f"Radius: {pred_distances}")
     ###########################################################
@@ -77,7 +78,9 @@ if __name__ == '__main__':
                        snr_range=snr,
                        source_range=S,
                        sample_range=T,
-                       is_2d=True)
+                       is_2d=True,
+                       soft_decision=False,
+                       threshold=5)
     # results = sim.run_snr_sources(show_plot=False, save_plot=True)
     results = sim.run_snr_samples(show_plot=True, save_plot=True)
     # results = sim.run_NumberofSnapshot(show_plot=True, save_plot=True)
