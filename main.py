@@ -39,9 +39,9 @@ if __name__ == '__main__':
 
     ############### MUSIC 2D ########################
     # snr = [5, 10, 15, 20, 25]
-    snr = [10]
+    snr = [15]
     T = [100]
-    S = [1]
+    S = [2]
     M = 5
     wavelength = 1
     array_geometry = 'ULA'
@@ -55,8 +55,8 @@ if __name__ == '__main__':
     ################## SINGLE RUN ##################
     # angles = module.choose_angles(S[0])
     # distances = module.choose_distances(S[0])
-    angles = [-np.pi/3]
-    distances = [3]
+    angles = [-np.pi/3, np.pi/3]
+    distances = [3, 5]
     print(f"True Angles: {np.rad2deg(angles)}")
     print(f"True Distances: {distances}")
     sample = signal.generate_2d(snr=snr[-1],

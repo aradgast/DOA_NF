@@ -71,9 +71,10 @@ class MUSIC2D:
         self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
-    def compute_predictions(self, signal, num_sources: int = None,
+    def compute_predictions(self, signal, num_sources: int = None, threshold: int = None,
                             plot_spectrum: bool = False, soft_decsicion: bool = False):
         """
+        :param threshold:
         :param num_sources:
         :param signal:
         :return: DOAs
@@ -82,8 +83,11 @@ class MUSIC2D:
             num_sources = self.num_sources
         cov_mat = compute_covariance_matrix(signal)
         eig_vals, eig_vecs = sc.linalg.eig(cov_mat)
+        if not threshold is None:
+            mask = [eig_vals > threshold]
+            num_sources = np.sum(mask)
         eig_vecs = eig_vecs[:, np.argsort(eig_vals)[::-1]]
-        noise_eig_vecs = eig_vecs[:, self.num_sources:]
+        noise_eig_vecs = eig_vecs[:, num_sources:]
 
         var_1 = np.einsum("ijk,kl->ijl", np.transpose(self.grid.conj(), (2, 1, 0)), noise_eig_vecs)
         var_2 = np.transpose(var_1.conj(), (2, 1, 0))
@@ -145,7 +149,7 @@ class MUSIC2D:
         max_col = (top_indxs % spectrum.shape[1]).astype(int)
         soft_row = []
         soft_col = []
-        cell_size = 20
+        cell_size = 30
         for i, (max_r, max_c) in enumerate(zip(max_row, max_col)):
             max_row_cell_idx = max_r - cell_size + \
                                np.arange(2 * cell_size + 1, dtype=int).reshape(-1, 1)

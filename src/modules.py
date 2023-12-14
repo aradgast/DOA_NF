@@ -4,12 +4,13 @@ import scipy as sp
 
 class Module:
     def __init__(self, array_geometry: str, wavelength: int, num_sensors: int, is_2d: bool = False,
-                 angle_low: float = -90, angle_high: float = 90, angle_min_gap: int = 2, angle_max_gap: int = 180,
-                 distance_min_gap: int = 1, distance_max_gap: int = 100):
+                 is_coherent: bool=False, angle_low: float = -90, angle_high: float = 90, angle_min_gap: int = 2,
+                 angle_max_gap: int = 180, distance_min_gap: int = 1, distance_max_gap: int = 100):
         self.array_geometry = array_geometry
         self.wavelength = wavelength
         self.num_sensors = num_sensors
         self.is_2d = is_2d
+        self.is_coherent = is_coherent
         self.angle_low = angle_low
         self.angle_high = angle_high
         self.angle_min_gap = angle_min_gap

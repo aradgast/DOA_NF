@@ -69,19 +69,21 @@ class Signal:
         noise = (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sensors) \
                 + 1j * np.random.randn(num_samples, num_sensors)
         # # Generate steering vectors
-        # steering_vectors = np.zeros((num_sensors, num_sources), dtype=complex)
-        # for i, (theta, dist) in enumerate(zip(angles, distances)):
-        #     steering_vectors[:, i] = self.module.compute_steering_vector(theta, dist)
-        # Generate steering vectors
         steering_vectors = self.module.compute_steering_vector(angles, distances)
-        # the function return all the possablities including the pairs not included, need to take the element on the diagonal,
-        # so steering_vectors = steering_vectors[:, i, i] for i in S, whereas len(angles) == len(distances)
-        steering_vectors = steering_vectors[:, np.arange(steering_vectors.shape[1]), np.arange(steering_vectors.shape[1])]
+
+        # the function return all the possibilities including the pairs not included, need to take the element on the
+        # diagonal, so steering_vectors = steering_vectors[:, i, i] for i in S, whereas len(angles) == len(distances)
+        steering_vectors = steering_vectors[:, np.arange(steering_vectors.shape[1]),
+                           np.arange(steering_vectors.shape[1])]
         # Generate random source signals
-        source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
-                         + 1j * np.random.randn(num_samples, num_sources)
+        if not self.module.is_coherent:
+            source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
+                             + 1j * np.random.randn(num_samples, num_sources)
+        else:  # coherent signals
+            source_signals = 10 ** (snr / 10) * (np.sqrt(2) / 2) * np.random.randn(num_samples, num_sources) \
+                             + 1j * np.random.randn(num_samples, 1)
+            source_signals = np.repeat(source_signals, num_sources, axis=0)
         # Compute the signal
-        # signal = steering_vectors @ source_signals.T
         signal = steering_vectors @ source_signals.T
         # Add noise
         signal = signal + noise.T
