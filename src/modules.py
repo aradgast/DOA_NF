@@ -56,8 +56,9 @@ class Module:
             dist = np.atleast_1d(dist)
             theta = theta[:, np.newaxis]
             dist = dist[:, np.newaxis]
-            limit = np.floor(self.num_sensors / 2)
-            array = np.linspace(-limit, limit, self.num_sensors, endpoint=True)
+            # limit = np.floor(self.num_sensors / 2)
+            # array = np.linspace(-limit, limit, self.num_sensors, endpoint=True)
+            array = np.linspace(0, self.num_sensors, self.num_sensors, endpoint=True)
             array = array[:, np.newaxis]
             array = np.tile(array, (1, self.num_sensors))
             array_square = np.power(array, 2)
