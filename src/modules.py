@@ -18,11 +18,13 @@ class Module:
         self.distance_min_gap = distance_min_gap
         self.distance_max_gap = distance_max_gap
 
-    def compute_steering_vector(self, theta: float, dist: float = None):
+    def compute_steering_vector(self, theta: np.ndarray = None,
+                                dist: np.ndarray = None):
         """
         Compute the steering vector for a given array geometry and wavelength
-        :param dist: float
-        :param theta: float
+        :param dist: np.ndarray
+        :param theta: np.ndarray
+
         :return: 1D array of shape (num_sensors, )
         """
         if self.is_2d:
@@ -32,19 +34,20 @@ class Module:
         else:
             return self._compute_steering_vector_1D(theta)
 
-    def _compute_steering_vector_1D(self, theta: float):
+    def _compute_steering_vector_1D(self, theta: np.ndarray = None):
         """
         Compute the steering vector for a given array geometry and wavelength
         :param theta: float
         :return: 1D array of shape (num_sensors, )
         """
         if self.array_geometry == 'ULA':
-            return np.exp(-1j * np.pi * np.linspace(0, self.num_sensors, self.num_sensors, endpoint=False)
+            L = self.num_sensors // 2
+            return np.exp(-1j * np.pi * np.linspace(-L, L, self.num_sensors)
                           * np.sin(theta) / self.wavelength)
         else:
             raise ValueError('Invalid array geometry')
 
-    def _compute_steering_vector_2D(self, theta: np.ndarray, dist: np.ndarray):
+    def _compute_steering_vector_2D(self, theta: np.ndarray, dist: np.ndarray, know_angles: np.ndarray = None):
         """
         Compute the steering vector for a given array geometry and wavelength
         :param theta: float
@@ -52,29 +55,32 @@ class Module:
         :return: 1D array of shape (num_sensors, )
         """
         if self.array_geometry == 'ULA':
-            theta = np.atleast_1d(theta)
-            dist = np.atleast_1d(dist)
-            theta = theta[:, np.newaxis]
-            dist = dist[:, np.newaxis]
-            # limit = np.floor(self.num_sensors / 2)
-            # array = np.linspace(-limit, limit, self.num_sensors, endpoint=True)
-            array = np.linspace(0, self.num_sensors, self.num_sensors, endpoint=True)
-            array = array[:, np.newaxis]
-            array = np.tile(array, (1, self.num_sensors))
-            array_square = np.power(array, 2)
+            if know_angles is None:
+                theta = np.atleast_1d(theta)
+                dist = np.atleast_1d(dist)
+                theta = theta[:, np.newaxis]
+                dist = dist[:, np.newaxis]
+                limit = self.num_sensors // 2
+                array = np.linspace(-limit, limit, self.num_sensors)
+                # array = np.linspace(0, self.num_sensors, self.num_sensors, endpoint=True)
+                array = array[:, np.newaxis]
+                array = np.tile(array, (1, self.num_sensors))
+                array_square = np.power(array, 2)
 
-            first_order = np.sin(theta)
-            first_order = np.tile(first_order, (1, self.num_sensors))
-            first_order = array @ first_order.T
-            first_order = np.tile(first_order[:, :, np.newaxis], (1, 1, len(dist)))
-            second_order = -0.5 * np.divide(np.power(np.cos(theta), 2), dist.T)
-            second_order = np.tile(second_order[:, :, np.newaxis], (1, 1, self.num_sensors))
-            # second_order = array_square * np.transpose(second_order, (2, 1, 0))
-            second_order = np.einsum('ij,jkl->ilk', array_square, np.transpose(second_order, (2, 1, 0)))
+                first_order = np.sin(theta)
+                first_order = np.tile(first_order, (1, self.num_sensors))
+                first_order = array @ first_order.T
+                first_order = np.tile(first_order[:, :, np.newaxis], (1, 1, len(dist)))
+                second_order = -0.5 * np.divide(np.power(np.cos(theta), 2), dist.T)
+                second_order = np.tile(second_order[:, :, np.newaxis], (1, 1, self.num_sensors))
+                # second_order = array_square * np.transpose(second_order, (2, 1, 0))
+                second_order = np.einsum('ij,jkl->ilk', array_square, np.transpose(second_order, (2, 1, 0)))
 
-            time_delay = first_order + second_order
+                time_delay = first_order + second_order
 
-            return np.exp(-1j * 2 * np.pi * time_delay / self.wavelength)
+                return np.exp(-1j * 4 * np.pi * time_delay / self.wavelength)
+
+
 
 
         else:

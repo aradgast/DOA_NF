@@ -184,6 +184,60 @@ class MUSIC2D:
 
         return soft_row, soft_col
 
+class ESPRIT:
+    """
+
+    """
+    def __init__(self, module: Module, num_sources: int = None, shift: int = 1):
+        self.shift = shift
+        self.module = module
+        self.num_sources = num_sources
+        self.distance_range = np.arange(self.module.wavelength, 10, 0.01)
+
+    def compute_predictions(self, signal: np.ndarray, num_sources: int = None):
+        """
+
+        :param signal:
+        :param num_sources:
+        :return:
+        """
+        cov_mat = compute_covariance_matrix(signal)
+        eig_vals, eig_vecs = sc.linalg.eig(cov_mat)
+        eig_vecs = eig_vecs[:, np.argsort(eig_vals)[::-1]]
+        signal_eig_vec = eig_vecs[:, :num_sources]
+        u_s_1, u_s_2 = signal_eig_vec[:signal_eig_vec.shape[0] - self.shift], signal_eig_vec[self.shift:signal_eig_vec.shape[0]]
+        phi = np.linalg.pinv(u_s_1) @ u_s_2
+        phi_eigenvalues = np.linalg.eigvals(phi)
+        doa = -1 * np.arcsin(np.imag((1 / self.shift) * np.log(phi_eigenvalues)) / np.pi)
+
+        distances = np.zeros(len(doa))
+        # calculate grid for each source
+        # for each angle in know_angle we need to calculate the spectrum
+        noise_eig_vec = eig_vecs[:, num_sources:]
+        limit = self.module.num_sensors // 2
+        array = np.linspace(-limit, limit, self.module.num_sensors)
+        for k, theta_k in enumerate(doa):
+            music_spectrum = np.zeros(len(self.distance_range))
+            for i, r in enumerate(self.distance_range):
+                first_order = np.sin(theta_k) * array
+                second_order = - 0.5 * np.power(np.cos(theta_k) * array / r, 2)
+                time_delay = first_order + second_order
+                A = np.exp(-1j * 4 * np.pi * time_delay / self.module.wavelength)[:, np.newaxis]
+                music_spectrum[i] = 1 / (np.linalg.norm(A.conj().T @ noise_eig_vec) ** 2)
+            print(music_spectrum.shape)
+            plt.plot(self.distance_range, music_spectrum)
+            plt.show()
+            # idx = np.argmax(music_spectrum)
+            # Find spectrum peaks
+            peaks = list(sc.signal.find_peaks(music_spectrum)[0])
+            # Sort the peak by their amplitude
+            peaks.sort(key=lambda x: music_spectrum[x], reverse=True)
+            idx = peaks[0]
+            prediction = self.distance_range[idx]
+            distances[k] = prediction
+
+        return doa, distances
+
 
 if __name__ == '__main__':
     pass
