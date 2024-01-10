@@ -66,8 +66,8 @@ class MUSIC2D:
         self.module = module
         self.num_sources = num_sources
         self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 1800)
-        self.fraunhofer_distance, self.D = self.module.calculate_fraunhofer_distance()
-        self.distance_range = np.arange(self.module.wavelength, 30, 0.01)
+        self.D, self.fraunhofer_distance = self.module.calculate_fraunhofer_distance()
+        self.distance_range = np.arange(self.D,  self.fraunhofer_distance, 0.01)
         self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
@@ -134,7 +134,7 @@ class MUSIC2D:
         ax.set_zlabel('Power')
 
         if highlight_coordinates:
-            ax.legend() # Adding a legend
+            ax.legend()  # Adding a legend
 
         # Display the plot
         plt.show()
@@ -184,15 +184,17 @@ class MUSIC2D:
 
         return soft_row, soft_col
 
+
 class ESPRIT:
     """
 
     """
+
     def __init__(self, module: Module, num_sources: int = None, shift: int = 1):
         self.shift = shift
         self.module = module
         self.num_sources = num_sources
-        self.distance_range = np.arange(self.module.wavelength, 10, 0.01)
+        self.distance_range = np.arange(2, 8, 0.01)
 
     def compute_predictions(self, signal: np.ndarray, num_sources: int = None):
         """
@@ -205,25 +207,26 @@ class ESPRIT:
         eig_vals, eig_vecs = sc.linalg.eig(cov_mat)
         eig_vecs = eig_vecs[:, np.argsort(eig_vals)[::-1]]
         signal_eig_vec = eig_vecs[:, :num_sources]
-        u_s_1, u_s_2 = signal_eig_vec[:signal_eig_vec.shape[0] - self.shift], signal_eig_vec[self.shift:signal_eig_vec.shape[0]]
+        u_s_1 = signal_eig_vec[0: signal_eig_vec.shape[0] - self.shift]
+        u_s_2 = signal_eig_vec[self.shift:signal_eig_vec.shape[0]]
         phi = np.linalg.pinv(u_s_1) @ u_s_2
         phi_eigenvalues = np.linalg.eigvals(phi)
-        doa = -1 * np.arcsin(np.imag((1 / self.shift) * np.log(phi_eigenvalues)) / np.pi)
-
+        doa = np.arcsin(np.angle(np.log(phi_eigenvalues)) / np.pi)
+        print(f"DOA: {np.rad2deg(doa)}")
         distances = np.zeros(len(doa))
         # calculate grid for each source
         # for each angle in know_angle we need to calculate the spectrum
         noise_eig_vec = eig_vecs[:, num_sources:]
         limit = self.module.num_sensors // 2
-        array = np.linspace(-limit, limit, self.module.num_sensors)
+        array = np.linspace(0, self.module.num_sensors, self.module.num_sensors)
         for k, theta_k in enumerate(doa):
             music_spectrum = np.zeros(len(self.distance_range))
             for i, r in enumerate(self.distance_range):
-                first_order = np.sin(theta_k) * array
-                second_order = - 0.5 * np.power(np.cos(theta_k) * array / r, 2)
+                first_order = np.sin(theta_k) * np.abs(array) * (self.module.wavelength / 4)
+                second_order = - 0.5 * np.power((self.module.wavelength / 4) * np.cos(theta_k) * array, 2) / r
                 time_delay = first_order + second_order
-                A = np.exp(-1j * 4 * np.pi * time_delay / self.module.wavelength)[:, np.newaxis]
-                music_spectrum[i] = 1 / (np.linalg.norm(A.conj().T @ noise_eig_vec) ** 2)
+                A = np.exp(-1j * 2 * np.pi * time_delay / self.module.wavelength)[:, np.newaxis]
+                music_spectrum[i] = 1 / (A.conj().T @ noise_eig_vec @ noise_eig_vec.conj().T @ A).squeeze()
             print(music_spectrum.shape)
             plt.plot(self.distance_range, music_spectrum)
             plt.show()

@@ -67,18 +67,18 @@ class Module:
                 array = np.tile(array, (1, self.num_sensors))
                 array_square = np.power(array, 2)
 
-                first_order = np.sin(theta)
+                first_order = np.sin(theta) * (self.wavelength / 2)
                 first_order = np.tile(first_order, (1, self.num_sensors))
-                first_order = array @ first_order.T
+                first_order = np.abs(array) @ first_order.T
                 first_order = np.tile(first_order[:, :, np.newaxis], (1, 1, len(dist)))
-                second_order = -0.5 * np.divide(np.power(np.cos(theta), 2), dist.T)
+                second_order = -0.5 * np.divide(np.power((self.wavelength / 2) * np.cos(theta), 2), dist.T)
                 second_order = np.tile(second_order[:, :, np.newaxis], (1, 1, self.num_sensors))
                 # second_order = array_square * np.transpose(second_order, (2, 1, 0))
                 second_order = np.einsum('ij,jkl->ilk', array_square, np.transpose(second_order, (2, 1, 0)))
 
                 time_delay = first_order + second_order
 
-                return np.exp(-1j * 4 * np.pi * time_delay / self.wavelength)
+                return np.exp(-1j * 2 * np.pi * time_delay / self.wavelength)
 
 
 
@@ -111,7 +111,8 @@ class Module:
         if self.array_geometry == "ULA":
             D = (self.num_sensors - 1) * self.wavelength / 2
             d_f = 2 * (D ** 2) / self.wavelength
-            return d_f, D
+            fresnel = 0.62 * (D ** 3 / self.wavelength) ** 0.5
+            return fresnel, d_f
         else:
             raise TypeError(f"{self.array_geometry} not supported")
 
@@ -139,7 +140,7 @@ class Module:
         :return: distances list
         """
         if self.array_geometry == "ULA":
-            distance_high, distance_low = self.calculate_fraunhofer_distance()
+            distance_low, distance_high = self.calculate_fraunhofer_distance()
         else:
             raise ValueError(f"The array geometry, {self.array_geometry}, is not recognized")
         distances = []

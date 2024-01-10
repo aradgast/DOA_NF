@@ -40,8 +40,8 @@ if __name__ == '__main__':
     ############### MUSIC 2D ########################
     # snr = [12]
     # T = [10, 50, 100, 500, 1000]
-    snr = np.array([5, 10, 15, 20, 50])
-    T = [50]
+    snr = np.array([5, 10, 15, 20, 25])
+    T = [10]
     S = [1]
     M = 5
     wavelength = 1
@@ -51,15 +51,15 @@ if __name__ == '__main__':
 
     # method = MUSIC2D(module=module,
     #                  num_sources=S[0])
-    method = ESPRIT(module=module)
+    method = MUSIC2D(module=module)
     signal = Signal(module=module,
                     num_sources=S[0])
     print(f"Fraunhofer distance: {module.calculate_fraunhofer_distance()}")
     ################## SINGLE RUN ##################
     # angles = module.choose_angles(S[0])
     # distances = module.choose_distances(S[0])
-    angles = np.deg2rad([15])
-    distances = [1.8]
+    angles = np.deg2rad([30])
+    distances = [5]
     print(f"True Angles: {np.rad2deg(angles)}")
     print(f"True Distances: {distances}")
     sample = signal.generate_2d(snr=snr[-1],
@@ -67,7 +67,7 @@ if __name__ == '__main__':
                                 distances=distances,
                                 num_samples=T[-1])
     # sample = signal.generate(angles=angles, snr=snr[-1], num_sources=S[0], num_samples=T[0], num_sensors=M)
-    pred_angles, pred_distances = method.compute_predictions(sample, num_sources=S[0])
+    pred_angles, pred_distances = method.compute_predictions(sample, num_sources=S[0], soft_decsicion=True)
     # pred_angles = method.compute_predictions(sample, num_sources=S[0])
     print(f"Angles: {np.rad2deg(pred_angles)}")
     print(f"Radius: {pred_distances}")
