@@ -18,7 +18,7 @@ class Module:
         self.distance_min_gap = distance_min_gap
         self.distance_max_gap = distance_max_gap
 
-    def compute_steering_vector(self, theta: float, dist: float = None):
+    def compute_steering_vector(self, theta: np.ndarray, dist: np.ndarray = None):
         """
         Compute the steering vector for a given array geometry and wavelength
         :param dist: float
@@ -105,7 +105,8 @@ class Module:
         if self.array_geometry == "ULA":
             D = (self.num_sensors - 1) * self.wavelength / 2
             d_f = 2 * (D ** 2) / self.wavelength
-            return d_f, D
+            fersnel = 0.62 * (D ** 3 / self.wavelength) ** 0.5
+            return d_f, fersnel
         else:
             raise TypeError(f"{self.array_geometry} not supported")
 

@@ -66,8 +66,9 @@ class MUSIC2D:
         self.module = module
         self.num_sources = num_sources
         self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 1800)
-        self.fraunhofer_distance, self.D = self.module.calculate_fraunhofer_distance()
-        self.distance_range = np.arange(self.module.wavelength, 30, 0.01)
+        self.fraunhofer_distance, self.fersnel_distance = self.module.calculate_fraunhofer_distance()
+        print(self.module.calculate_fraunhofer_distance())
+        self.distance_range = np.arange(self.fersnel_distance, self.fraunhofer_distance, 0.01)
         self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 

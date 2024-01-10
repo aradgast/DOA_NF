@@ -14,7 +14,7 @@ def compute_mse_loss(predictions:list, doa:list):
     predictions = np.array(sorted(predictions))
     return np.mean((np.array(predictions) - np.array(doa)) ** 2)
 
-def compute_rmpse_loss(predictions:list, doa:list):
+def compute_rmpse_loss(predictions_doa:list, doa:list, predictions_distance: list, distance: list):
     """
     Compute the RMPSE between the predictions and the true DOAs
     :param predictions: list
@@ -22,12 +22,16 @@ def compute_rmpse_loss(predictions:list, doa:list):
     :return: float
     """
     doa = np.array(doa)
-    predictions_perm = multiset_permutations(predictions)
+    predictions_perm_doa = multiset_permutations(predictions_doa)
+    predictions_perm_dist = multiset_permutations(predictions_distance)
     rmspe_list = []
-    for prediction in predictions_perm:
+    for pred_doa, pred_dist in zip(predictions_perm_doa, predictions_perm_dist):
         # Calculate error with modulo pi
-        prediction = np.array(prediction)
-        error = (((prediction - doa) + (np.pi / 2)) % np.pi) - np.pi / 2
+        pred_doa = np.array(pred_doa)
+        pred_dist = np.array(pred_dist)
+        error = (((pred_doa - doa) + (np.pi / 2)) % np.pi) - np.pi / 2
+        err_dist = (pred_dist - distance) * np.pi / 10
+        error += err_dist
         # Calculate RMSE over all permutations
         rmspe_val = (1 / np.sqrt(len(doa))) * np.linalg.norm(error)
         rmspe_list.append(rmspe_val)

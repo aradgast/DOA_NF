@@ -41,8 +41,8 @@ if __name__ == '__main__':
     # snr = [12]
     # T = [10, 50, 100, 500, 1000]
     snr = np.array([5, 10, 15, 20, 25])
-    T = [100]
-    S = [3]
+    T = [25]
+    S = [1]
     M = 5
     wavelength = 1
     array_geometry = 'ULA'
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # print(f"Radius: {pred_distances}")
     ###########################################################
     ################## MONTE CARLO ############################
-    sim = MTSimulation(iteration_num=100,
+    sim = MTSimulation(iteration_num=200,
                        module=module,
                        method=method,
                        signal=signal,
@@ -82,7 +82,7 @@ if __name__ == '__main__':
                        soft_decision=True,
                        threshold=None)
     # results = sim.run_snr_sources(show_plot=False, save_plot=True)
-    results = sim.run_snr_samples(show_plot=True, save_plot=True)
+    sim.run_snr_samples(show_plot=True, save_plot=True)
     # results = sim.run_NumberofSnapshot(show_plot=True, save_plot=True)
     # sim.run_rmse_distance(15, save_plot=True, show_plot=True)
     ###########################################################
