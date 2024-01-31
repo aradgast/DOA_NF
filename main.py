@@ -1,4 +1,5 @@
-from src.methods import MUSIC, MUSIC2D
+import utils.functions
+from src.methods import MUSIC, MUSIC2D, ESPRIT
 from src.signal import Signal
 from utils.functions import plot_angles_on_unit_circle
 from utils.simulation import MTSimulation
@@ -7,6 +8,7 @@ import numpy as np
 # from utils.functions import choose_angles, choose_distances, calculate_fraunhofer_distance
 from src.modules import Module
 if __name__ == '__main__':
+    utils.functions.set_unified_seed()
     pass
     ############### MUSIC ########################
 
@@ -40,8 +42,8 @@ if __name__ == '__main__':
     ############### MUSIC 2D ########################
     # snr = [12]
     # T = [10, 50, 100, 500, 1000]
-    snr = np.array([5, 10, 15, 20, 25])
-    T = [25]
+    snr = np.array([-5, 0, 5, 10, 15, 20])
+    T = [100]
     S = [1]
     M = 5
     wavelength = 1
@@ -49,7 +51,7 @@ if __name__ == '__main__':
     module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength,
                     is_2d=True, is_coherent=False)
 
-    method = MUSIC2D(module=module,
+    method = ESPRIT(module=module,
                      num_sources=S[0])
     signal = Signal(module=module,
                     num_sources=S[0])
@@ -57,32 +59,32 @@ if __name__ == '__main__':
     ################## SINGLE RUN ##################
     # angles = module.choose_angles(S[0])
     # distances = module.choose_distances(S[0])
-    # angles = np.deg2rad([40, 65])
-    # distances = [3, 7]
-    # print(f"True Angles: {np.rad2deg(angles)}")
-    # print(f"True Distances: {distances}")
-    # sample = signal.generate_2d(snr=snr[-1],
-    #                             angles=angles,
-    #                             distances=distances,
-    #                             num_samples=T[-1])
-    # pred_angles, pred_distances = method.compute_predictions(sample, soft_decsicion=False, threshold=5)
-    # print(f"Angles: {np.rad2deg(pred_angles)}")
-    # print(f"Radius: {pred_distances}")
+    angles = np.deg2rad([40])
+    distances = [3]
+    print(f"True Angles: {np.rad2deg(angles)}")
+    print(f"True Distances: {distances}")
+    sample = signal.generate_2d(snr=snr[-1],
+                                angles=angles,
+                                distances=distances,
+                                num_samples=T[-1])
+    pred_angles, pred_distances = method.compute_predictions(sample, soft_decsicion=False, threshold=5)
+    print(f"Angles: {np.rad2deg(pred_angles)}")
+    print(f"Radius: {pred_distances}")
     ###########################################################
     ################## MONTE CARLO ############################
-    sim = MTSimulation(iteration_num=200,
-                       module=module,
-                       method=method,
-                       signal=signal,
-                       loss=compute_mse_loss,
-                       snr_range=snr,
-                       source_range=S,
-                       sample_range=T,
-                       is_2d=True,
-                       soft_decision=True,
-                       threshold=None)
+    # sim = MTSimulation(iteration_num=100,
+    #                    module=module,
+    #                    method=method,
+    #                    signal=signal,
+    #                    loss=compute_rmpse_loss,
+    #                    snr_range=snr,
+    #                    source_range=S,
+    #                    sample_range=T,
+    #                    is_2d=True,
+    #                    soft_decision=False,
+    #                    threshold=None)
     # results = sim.run_snr_sources(show_plot=False, save_plot=True)
-    sim.run_snr_samples(show_plot=True, save_plot=True)
+    # sim.run_snr_samples(show_plot=True, save_plot=True)
     # results = sim.run_NumberofSnapshot(show_plot=True, save_plot=True)
     # sim.run_rmse_distance(15, save_plot=True, show_plot=True)
     ###########################################################

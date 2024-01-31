@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sc
 import matplotlib.pyplot as plt
+import random
 
 
 def compute_covariance_matrix(signal):
@@ -24,3 +25,8 @@ def plot_angles_on_unit_circle(true, predections):
     # ax.set_xticklabels(np.linspace(-90, 90, 18, endpoint=False))
     ax.legend()
     plt.show()
+
+
+def set_unified_seed(seed:int = 42):
+    random.seed(seed)
+    np.random.seed(seed)

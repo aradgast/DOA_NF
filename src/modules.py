@@ -104,8 +104,8 @@ class Module:
     def calculate_fraunhofer_distance(self):
         if self.array_geometry == "ULA":
             D = (self.num_sensors - 1) * self.wavelength / 2
-            d_f = 2 * (D ** 2) / self.wavelength
-            fersnel = 0.62 * (D ** 3 / self.wavelength) ** 0.5
+            d_f = np.floor(2 * (D ** 2) / self.wavelength)
+            fersnel = np.ceil(0.62 * (D ** 3 / self.wavelength) ** 0.5)
             return d_f, fersnel
         else:
             raise TypeError(f"{self.array_geometry} not supported")

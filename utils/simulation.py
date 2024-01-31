@@ -27,7 +27,8 @@ class MTSimulation:
         # DOA
         gap = 15
         while True:
-            DOA = np.round(np.random.rand(M) * 180, decimals=2) - 90
+            # DOA = np.round(np.random.rand(M) * 180, decimals=0) - 90
+            DOA = np.random.randint(-90, 0, M) * 2 + 90
             DOA.sort()
             diff_angles = np.array(
                 [np.abs(DOA[i + 1] - DOA[i]) for i in range(M - 1)]
@@ -39,13 +40,13 @@ class MTSimulation:
         # distances
         distances = np.zeros(M)
         max_val = 8
-        min_val = 1.7
+        min_val = 2
         distance_min_gap = 0.5
         distance_max_gap = 3
         idx = 0
         while idx < M:
             tmp = np.random.rand(1) * (max_val - min_val)
-            distance = np.round(tmp, decimals=3) + min_val
+            distance = np.round(tmp, decimals=0) + min_val
             if len(distances) == 0:
                 distances[idx] = distance
                 idx += 1
@@ -55,7 +56,7 @@ class MTSimulation:
                     distances[idx] = distance
                     idx += 1
 
-        return DOA, distances
+        return np.deg2rad(DOA), distances
 
     def run_snr_samples(self, show_plot: bool = True, save_plot: bool = False):
         if self.is_2d:
@@ -119,8 +120,8 @@ class MTSimulation:
                 :return: None
                 """
         # Initialize the results array
-        # results_angles = np.zeros((len(self.snr_range), len(self.sample_range)))
-        # results_distances = np.zeros((len(self.snr_range), len(self.sample_range)))
+        results_angles = np.zeros((len(self.snr_range), len(self.sample_range)))
+        results_distances = np.zeros((len(self.snr_range), len(self.sample_range)))
         results = np.zeros((len(self.snr_range), len(self.sample_range)))
         # Run the simulation
         S = self.source_range[0]
@@ -130,8 +131,8 @@ class MTSimulation:
         # dist = [3]
         for snr_idx, snr in enumerate(self.snr_range):
             for t_idx, t in enumerate(self.sample_range):
-                # loss_angles = []
-                # loss_dist = []
+                loss_angles = []
+                loss_dist = []
                 loss = []
                 for i in range(self.iteration_num):
                     doa, dist = self.generate_label(S)
@@ -144,16 +145,19 @@ class MTSimulation:
                                                                                            threshold=self.threshold,
                                                                                            plot_spectrum=False)
                     # Compute the loss
-                    # loss_angles.append(np.array(doa)-np.sort(predictions_angles))
-                    # loss_dist.append(np.array(dist)-np.sort(predictions_dist))
-                    loss.append(compute_rmpse_loss(predictions_angles, doa, predictions_dist, dist))
+                    rmspe_val, rmspe_val_angle, rmspe_val_distance = compute_rmpse_loss(predictions_angles, doa, predictions_dist, dist)
+                    loss_angles.append(rmspe_val_angle)
+                    loss_dist.append(rmspe_val_distance)
+                    loss.append(rmspe_val)
                 # Store the results
-                # results_angles[snr_idx, t_idx] = np.sqrt(np.mean(np.power(loss_angles, 2)))
-                # results_distances[snr_idx, t_idx] = np.sqrt(np.mean(np.power(loss_dist, 2)))
+                results_angles[snr_idx, t_idx] = np.mean(loss_angles)
+                results_distances[snr_idx, t_idx] = np.mean(loss_dist)
                 results[snr_idx, t_idx] = np.mean(loss)
                 print(f'SNR = {snr}, T = {t}:  '
                       # f'RMSE(angles, dist) = ({results_angles[snr_idx, t_idx]}, {results_distances[snr_idx, t_idx]})')
-                      f'RMPSE = ({results[snr_idx, t_idx]}')
+                      f'RMPSE = Overall: {results[snr_idx, t_idx]},'
+                      f' Angle: {results_angles[snr_idx, t_idx]},'
+                      f' Distance: {results_distances[snr_idx, t_idx]}')
         # Plot the results
         # plt.subplot(1, 2, 1)
         # plt.title(f'DOA = {np.rad2deg(doa)}')

@@ -65,10 +65,10 @@ class MUSIC2D:
     def __init__(self, module: Module, num_sources: int = None):
         self.module = module
         self.num_sources = num_sources
-        self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 1800)
+        self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 90)
         self.fraunhofer_distance, self.fersnel_distance = self.module.calculate_fraunhofer_distance()
         print(self.module.calculate_fraunhofer_distance())
-        self.distance_range = np.arange(self.fersnel_distance, self.fraunhofer_distance, 0.01)
+        self.distance_range = np.arange(self.fersnel_distance, self.fraunhofer_distance, 1)
         self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
@@ -185,6 +185,44 @@ class MUSIC2D:
 
         return soft_row, soft_col
 
+class ESPRIT:
+    def __init__(self, module: Module, num_sources: int = None):
+        self.module = module
+        self.num_sources = num_sources
+    def compute_predictions(self, signal, num_sources: int = None, threshold: int = None,
+                            plot_spectrum: bool = False, soft_decsicion: bool = False):
+        if num_sources is None:
+            num_sources = self.num_sources
+        # get the 3 estimated covariance matrices
+        R_1, R_2, R_3 = self.__calculate_shifted_covariance(signal)
+        # stack the 3 matrices together
+        R = np.concatenate((R_1, R_2, R_3), axis=0)
+        # SVD calculation
+        U, S, Vh = np.linalg.svd(R, full_matrices=True)
+        # sort the  by the singularvectors by the singularvalues
+        U = U[:, np.argsort(S)[::-1]]
+        # take the singular vectors that correspond to the num_sources biggest singular values.
+        E_s = U[:, :num_sources]
+        E_0 = E_s[:E_s.shape[0] // 3]
+        E_1 = E_s[E_s.shape[0] // 3:2 * E_s.shape[0] // 3]
+        E_2 = E_s[2 * E_s.shape[0] // 3:]
+        pinv_E_0 = np.linalg.pinv(E_0)
+        psi_1 = pinv_E_0 @ E_1
+        psi_2 = pinv_E_0 @ E_2
+        omega = 0.5 * np.angle(psi_1)
+        phi = -0.5 * np.angle(psi_2)
+        angles = np.arcsin(-4 * omega / (2 * np.pi))
+        distances = np.pi * self.module.wavelength * (np.cos(angles) ** 2) / (16 * phi)
+
+        return angles, distances
+
+    def __calculate_shifted_covariance(self, signal):
+        # for R1 the correlation is between the n-m sensor to the n-m-1 sensor
+        R_1 = (signal[:-2, :] @ signal[1:-1, :].conj().T) / signal.shape[1]
+        R_2 = (signal[1:-1, :] @ signal[2:, :].conj().T) / signal.shape[1]
+        R_3 = R_2.conj().T
+
+        return R_1, R_2, R_3
 
 if __name__ == '__main__':
     pass
