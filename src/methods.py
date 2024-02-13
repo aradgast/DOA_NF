@@ -65,14 +65,14 @@ class MUSIC2D:
     def __init__(self, module: Module, num_sources: int = None):
         self.module = module
         self.num_sources = num_sources
-        self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 1800)
+        self.thera_range = np.arange(-np.pi / 2, np.pi / 2, np.pi / 90)
         self.D, self.fraunhofer_distance = self.module.calculate_fraunhofer_distance()
-        self.distance_range = np.arange(self.D,  self.fraunhofer_distance, 0.01)
+        self.distance_range = np.arange(np.floor(self.D - 0.5),  np.round(self.fraunhofer_distance + 0.5), 1)
         self.grid = self.module.compute_steering_vector(self.thera_range, self.distance_range)
         # print(f"fraunhofer_dist = {self.fraunhofer_distance}, D = {D}")
 
     def compute_predictions(self, signal, num_sources: int = None, threshold: int = None,
-                            plot_spectrum: bool = False, soft_decsicion: bool = False):
+                            plot_spectrum: bool = True, soft_decsicion: bool = False):
         """
         :param threshold:
         :param num_sources:
@@ -113,7 +113,7 @@ class MUSIC2D:
         # Plotting the 3D surface
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.plot_surface(x, y, np.log1p(spectrum), cmap='viridis')
+        ax.plot_surface(x, y, 10*np.log10(spectrum), cmap='viridis')
 
         if highlight_coordinates:
             highlight_coordinates = np.array(highlight_coordinates)

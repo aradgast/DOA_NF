@@ -42,8 +42,8 @@ if __name__ == '__main__':
     # T = [10, 50, 100, 500, 1000]
     snr = np.array([5, 10, 15, 20, 25])
     T = [10]
-    S = [1]
-    M = 5
+    S = [2]
+    M = 9
     wavelength = 1
     array_geometry = 'ULA'
     module = Module(array_geometry=array_geometry, num_sensors=M, wavelength=wavelength,
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     ################## SINGLE RUN ##################
     # angles = module.choose_angles(S[0])
     # distances = module.choose_distances(S[0])
-    angles = np.deg2rad([30])
-    distances = [5]
+    angles = np.deg2rad([30, 45])
+    distances = [5, 3]
     print(f"True Angles: {np.rad2deg(angles)}")
     print(f"True Distances: {distances}")
     sample = signal.generate_2d(snr=snr[-1],
@@ -67,7 +67,7 @@ if __name__ == '__main__':
                                 distances=distances,
                                 num_samples=T[-1])
     # sample = signal.generate(angles=angles, snr=snr[-1], num_sources=S[0], num_samples=T[0], num_sensors=M)
-    pred_angles, pred_distances = method.compute_predictions(sample, num_sources=S[0], soft_decsicion=True)
+    pred_angles, pred_distances = method.compute_predictions(sample, num_sources=S[0], soft_decsicion=False)
     # pred_angles = method.compute_predictions(sample, num_sources=S[0])
     print(f"Angles: {np.rad2deg(pred_angles)}")
     print(f"Radius: {pred_distances}")
